@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Container Download - Singularity Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#dde1ff",
+                        "on-error-container": "#93000a",
+                        "inverse-surface": "#2d3133",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "surface": "#f7f9fb",
+                        "primary": "#003ec7",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface-tint": "#004ced",
+                        "on-primary-fixed": "#001452",
+                        "on-background": "#191c1e",
+                        "on-tertiary-fixed-variant": "#38485d",
+                        "secondary-container": "#dae2fd",
+                        "inverse-primary": "#b7c4ff",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#b7c8e1",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e6e8ea",
+                        "primary-container": "#0052ff",
+                        "surface-bright": "#f7f9fb",
+                        "on-primary-fixed-variant": "#0038b6",
+                        "outline": "#737688",
+                        "surface-container": "#eceef0",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-tertiary-container": "#d6e6ff",
+                        "on-tertiary-fixed": "#0b1c30",
+                        "secondary": "#565e74",
+                        "on-primary-container": "#dfe3ff",
+                        "surface-dim": "#d8dadc",
+                        "surface-variant": "#e0e3e5",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#d3e4fe",
+                        "on-surface": "#191c1e",
+                        "primary-fixed-dim": "#b7c4ff",
+                        "on-secondary-container": "#5c647a",
+                        "tertiary-container": "#57677e",
+                        "error-container": "#ffdad6",
+                        "background": "#f7f9fb",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#dae2fd",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "on-secondary-fixed": "#131b2e",
+                        "outline-variant": "#c3c5d9",
+                        "tertiary": "#3f4f65",
+                        "on-surface-variant": "#434656"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "container-max": "1200px",
+                        "margin-sm": "16px",
+                        "margin-md": "32px",
+                        "margin-lg": "64px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "headline-xl": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "technical-md": ["JetBrains Mono"],
+                        "body-sm": ["Inter"],
+                        "technical-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "headline-xl": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "technical-md": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "technical-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-16">
+<!-- TopNavBar Component -->
+<nav class="bg-surface-container-lowest dark:bg-inverse-surface shadow-sm dark:shadow-none fixed top-0 left-0 w-full z-50 flex items-center justify-between px-margin-md h-16 mx-auto">
+<div class="flex items-center gap-margin-md">
+<a href="/" class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary tracking-tight hover:opacity-80 transition-opacity" style="text-decoration: none;">Singularity Hub</a>
+<div class="hidden md:flex items-center gap-margin-sm h-full">
+<a class="text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary font-bold pb-1 h-full flex items-center" href="/download">Containers</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="#">Documentation</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="mailto:nsmss@cdac.in" title="Request new user creation: Name, Email, Purpose, Target Device">Contact</a>
+</div>
+</div>
+<div class="flex items-center gap-margin-sm">
+<!-- Search Bar placeholder for "on_right" -->
+<div class="hidden lg:flex items-center bg-surface-container border border-outline-variant rounded px-3 py-1.5 focus-within:border-primary transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-size: 18px;">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-sm font-body-sm p-0 w-48 placeholder-on-surface-variant" placeholder="Search..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<button class="text-on-surface-variant hover:text-primary transition-colors mr-2" title="<%= username ? username : 'Guest' %>">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+<% if (username) { %>
+<a class="bg-primary text-on-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container transition-colors ml-2 hidden sm:block" href="/logout" style="text-decoration: none;">
+                    Logout
+                </a>
+<% } else { %>
+<a class="bg-primary text-on-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container transition-colors ml-2 hidden sm:block" href="/login" style="text-decoration: none;">
+                    Login
+                </a>
+<% } %>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-4 md:px-margin-md py-margin-md">
+<!-- Status Header -->
+<div class="mb-margin-md flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-green-600 bg-green-100 p-2 rounded-full" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-background"><%= headerLabel %></h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant"><%= personalized ? 'Showing containers filtered by your purpose and architecture.' : 'Browse all available containers. This list is currently hardcoded and will be fetched from the remote repository later.' %></p>
+<% if (personalized) { %>
+<div class="mt-2 inline-flex items-center gap-2 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-technical-sm">
+<span class="material-symbols-outlined" style="font-size: 16px;">badge</span>
+    Showing authorized containers for: <strong class="font-bold"><%= username %></strong>
+</div>
+<% } %>
+</div>
+</div>
+</div>
+<!-- Dashboard Layout Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Column: Primary Download Area -->
+<div class="lg:col-span-8 flex flex-col gap-gutter">
+
+<% if (containers.length > 0) { %>
+    <div class="grid grid-cols-1 gap-gutter">
+        <% containers.forEach(function(container) { %>
+            <div class="bg-surface-container-lowest border border-surface-variant rounded-lg p-margin-md shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_8px_30px_rgba(15,23,42,0.08)] transition-shadow">
+                <div class="flex justify-between items-start mb-margin-sm gap-4">
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                            <h2 class="font-headline-md text-headline-md text-on-surface"><%= container.title %></h2>
+                            <% if (container.stable) { %>
+                            <span class="bg-green-100 text-green-800 font-technical-sm px-2 py-1 rounded border border-green-200 flex items-center gap-1"><span class="material-symbols-outlined" style="font-size: 14px;">check_circle</span> Stable Build</span>
+                            <% } %>
+                        </div>
+                        <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl"><%= container.description %></p>
+                    </div>
+                    <div class="bg-surface text-on-surface-variant px-3 py-1 rounded border border-outline-variant font-technical-md text-technical-md flex items-center gap-2">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
+                        <%= container.downloads %>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 mb-4">
+                    <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.arch %></span>
+                    <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.access %></span>
+                    <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.purpose %></span>
+                </div>
+                <div class="mt-margin-md bg-surface-container p-margin-md rounded flex flex-col md:flex-row items-center justify-between gap-margin-sm border border-outline-variant">
+                    <div class="flex-1 w-full">
+                        <button onclick="triggerDownload('<%= container.filename %>')" class="w-full bg-primary hover:bg-primary-container text-on-primary font-headline-md text-headline-md py-4 px-6 rounded flex items-center justify-center gap-3 transition-colors shadow-sm">
+                            <span class="material-symbols-outlined" style="font-size: 28px;">download</span>
+                            Download Singularity Image (.sif)
+                        </button>
+                    </div>
+                    <div class="text-center md:text-right w-full md:w-auto">
+                        <div class="font-technical-md text-technical-md text-on-surface">File Size: <%= container.size %></div>
+                        <div class="font-body-sm text-body-sm text-on-surface-variant">Est. time: <%= container.estimate %></div>
+                    </div>
+                </div>
+            </div>
+        <% }); %>
+    </div>
+<% } else { %>
+    <div class="bg-surface-container-lowest border border-surface-variant rounded-lg p-margin-md text-center">
+        <h2 class="font-headline-md text-headline-md text-on-surface mb-2">No matching containers found</h2>
+        <p class="font-body-md text-body-md text-on-surface-variant">Your profile and architecture do not match any available images yet. Please request additional access or try again later.</p>
+    </div>
+<% } %>
+</div>
+<!-- Right Column: Technical Specs -->
+<div class="lg:col-span-4 flex flex-col gap-gutter">
+<div class="bg-surface-container-lowest border border-surface-variant rounded-lg p-margin-md shadow-[0_4px_20px_rgba(15,23,42,0.05)] h-full">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-margin-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">memory</span>
+                        Technical Specifications
+                    </h3>
+<div class="space-y-4">
+<div class="border-b border-surface-variant pb-3">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">Version</div>
+<div class="font-technical-md text-technical-md text-on-surface">2.14.0-gpu-hpc</div>
+</div>
+<div class="border-b border-surface-variant pb-3">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">Architecture</div>
+<div class="font-technical-md text-technical-md text-on-surface">x86_64</div>
+</div>
+<div class="border-b border-surface-variant pb-3">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">Target Device Compatibility</div>
+<div class="font-technical-md text-technical-md text-on-surface">NVIDIA Ampere, Hopper</div>
+</div>
+<div class="border-b border-surface-variant pb-3">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">Base OS</div>
+<div class="font-technical-md text-technical-md text-on-surface">Ubuntu 22.04 LTS</div>
+</div>
+<div class="pt-2">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-2">SHA-256 Checksum</div>
+<div class="bg-surface-container-high p-3 rounded border border-outline-variant relative group">
+<code class="font-technical-sm text-technical-sm text-on-surface break-all">
+                                    8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4
+                                </code>
+<button class="absolute top-2 right-2 text-on-surface-variant hover:text-primary hidden group-hover:block transition-colors" title="Copy Checksum">
+<span class="material-symbols-outlined" style="font-size: 16px;">content_copy</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Component -->
+<footer class="bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant dark:border-outline mt-auto w-full py-margin-md px-margin-md flex flex-col md:flex-row justify-between items-center gap-base mx-auto">
+<div class="font-headline-sm text-headline-sm font-semibold text-on-surface dark:text-inverse-on-surface text-center md:text-left">
+            © 2024 HPC Systems. All rights reserved. Secure Singularity Container Distribution.
+        </div>
+<div class="flex flex-wrap justify-center gap-margin-sm">
+<a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Terms of Service</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Security Audit</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">API Reference</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Status</a>
+</div>
+</footer>
+
+<script>
+function triggerDownload(filename) {
+    fetch('/api/increment-download', { method: 'POST' })
+    .then(response => {
+        // Trigger actual .sif file download here via window.location or a hidden link
+        alert(`Download initiated for ${filename}. Database count updated.`);
+    });
+}
+</script>
+
+</body></html>
