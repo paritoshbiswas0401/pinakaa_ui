@@ -189,7 +189,7 @@
 <a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200" href="/download">Containers</a>
 <a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200" href="#">Documentation</a>
 <a class="text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary font-bold pb-1" href="#">Support</a>
-<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200" href="mailto:nsmss@cdac.in" title="Request new user creation: Name, Email, Purpose, Target Device">Contact</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200" href="/contact" title="Request container access: Name, Email, Purpose, Target Device/Architecture, Organization">Contact</a>
 </nav>
 </div>
 <div class="flex items-center gap-margin-sm">
@@ -267,6 +267,13 @@
 <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">arrow_drop_down</span>
 </div>
 </div>
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-base" for="organization">Organization</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">business</span>
+<input class="w-full pl-10 pr-3 py-2 bg-surface-container-low border border-outline-variant rounded-DEFAULT focus:border-primary focus:ring-1 focus:ring-primary font-body-sm text-body-sm text-on-surface transition-colors" id="organization" placeholder="e.g. Stanford University" type="text"/>
+</div>
+</div>
 <button class="w-full bg-primary text-on-primary font-body-md text-body-md font-semibold py-2 px-4 rounded-DEFAULT hover:bg-primary-container hover:text-on-primary-container transition-colors flex items-center justify-center gap-base" type="button">
 <span class="material-symbols-outlined text-[20px]">add_circle</span>
                         Authorize User
@@ -290,7 +297,8 @@
 <thead>
 <tr class="bg-surface-container-low border-b border-outline-variant">
 <th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">User Identifier</th>
-<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Institution</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Purpose</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Organization</th>
 <th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Architecture</th><th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Container Access</th>
 <th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Status</th>
 <th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant text-right">Actions</th>
@@ -306,6 +314,7 @@
             </div>
         </td>
         <td class="py-3 px-4 font-body-sm text-body-sm"><%= user.purpose %></td>
+        <td class="py-3 px-4 font-body-sm text-body-sm"><%= user.organization || 'N/A' %></td>
         <td class="py-3 px-4"><%= user.target_device %></td>
         <td class="py-3 px-4"><%= user.container_access %></td>
         <td class="py-3 px-4">Active</td>
@@ -341,4 +350,34 @@
 <a class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Status</a>
 </nav>
 </footer>
+<script>
+document.querySelector('button[type="button"]').addEventListener('click', async () => {
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const purpose = document.getElementById('purpose').value;
+    const containerAccess = document.getElementById('container-access').value;
+    const arch = document.getElementById('arch').value;
+    const organization = document.getElementById('organization').value;
+
+    if (!username || !email || !password || !purpose || !organization) {
+        alert('Please fill all fields');
+        return;
+    }
+
+    const response = await fetch('/admin/add-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password, purpose, 'container-access': containerAccess, arch, organization })
+    });
+
+    const result = await response.json();
+    if (result.success) {
+        alert('User added successfully');
+        location.reload();
+    } else {
+        alert('Error: ' + result.error);
+    }
+});
+</script>
 </body></html>

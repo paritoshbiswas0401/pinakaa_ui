@@ -71,6 +71,19 @@ app.get('/admin', (req, res) => {
     });
 });
 
+// 3.1 Add User
+app.post('/admin/add-user', (req, res) => {
+    if (req.session.role !== 'admin') return res.status(403).json({ error: "Unauthorized" });
+
+    const { username, email, password, purpose, 'container-access': containerAccess, arch, organization } = req.body;
+
+    db.run(`INSERT INTO users (username, email, password, purpose, target_device, container_access, role, organization) 
+            VALUES (?, ?, ?, ?, ?, ?, 'user', ?)`, [username, email, password, purpose, arch, containerAccess, organization], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+    });
+});
+
 const allContainers = [
     {
         title: 'TensorFlow HPC Optimization',
@@ -154,9 +167,18 @@ app.get('/download', (req, res) => {
 app.post('/api/increment-download', (req, res) => {
     if (!req.session.userId) return res.status(403).json({ error: "Unauthorized" });
 
+    const userId = req.session.userId;
+    const now = new Date().toISOString();
+
+    // Update total downloads
     db.run("UPDATE stats SET total_downloads = total_downloads + 1 WHERE id = 1", function(err) {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true });
+        
+        // Update user's last download time
+        db.run("UPDATE users SET last_download = ? WHERE id = ?", [now, userId], function(err2) {
+            if (err2) return res.status(500).json({ error: err2.message });
+            res.json({ success: true });
+        });
     });
 });
 
@@ -166,6 +188,11 @@ app.get('/logout', (req, res) => {
         if (err) return res.redirect('/login');
         res.redirect('/');
     });
+});
+
+// 7. Contact Page
+app.get('/contact', (req, res) => {
+    res.render('contact', { username: req.session.username });
 });
 
 app.listen(PORT, () => {

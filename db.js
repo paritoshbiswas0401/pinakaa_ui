@@ -15,8 +15,22 @@ db.serialize(() => {
         purpose TEXT,
         target_device TEXT,
         container_access TEXT, 
-        role TEXT DEFAULT 'user'
+        role TEXT DEFAULT 'user',
+        organization TEXT,
+        last_download DATETIME
     )`);
+
+    // Add columns if they don't exist (for existing databases)
+    db.run(`ALTER TABLE users ADD COLUMN organization TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding organization column:', err);
+        }
+    });
+    db.run(`ALTER TABLE users ADD COLUMN last_download DATETIME`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding last_download column:', err);
+        }
+    });
 
     // Create System Stats Table for Download Counts
     db.run(`CREATE TABLE IF NOT EXISTS stats (
@@ -32,12 +46,12 @@ db.serialize(() => {
     });
 
     // Insert Default Admin (Password hashed in production, plain text here for demo)
-    db.run(`INSERT OR IGNORE INTO users (username, email, password, purpose, target_device, container_access, role) 
-            VALUES ('admin', 'admin@hpc.system', 'admin123', 'System Administration', 'All', 'All', 'admin')`);
+    db.run(`INSERT OR IGNORE INTO users (username, email, password, purpose, target_device, container_access, role, organization) 
+            VALUES ('admin', 'admin@hpc.system', 'admin123', 'System Administration', 'All', 'All', 'admin', 'HPC Systems')`);
 
     // Insert Default User with specific access
-    db.run(`INSERT OR IGNORE INTO users (username, email, password, purpose, target_device, container_access, role) 
-            VALUES ('dr_smith_ai', 'smith@stanford.edu', 'user123', 'AI Research', 'x86_64', 'GPU-Optimized', 'user')`);
+    db.run(`INSERT OR IGNORE INTO users (username, email, password, purpose, target_device, container_access, role, organization) 
+            VALUES ('dr_smith_ai', 'smith@stanford.edu', 'user123', 'AI Research', 'x86_64', 'GPU-Optimized', 'user', 'Stanford University')`);
 });
 
 module.exports = db;
