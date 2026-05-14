@@ -207,6 +207,11 @@
 <h1 class="font-headline-lg text-headline-lg text-on-surface mb-base">User Management</h1>
 <p class="font-body-md text-body-md text-on-surface-variant">Administer secure access and review active authorizations.</p>
 </div>
+<% if (message) { %>
+<div class="mb-margin-md rounded-DEFAULT border border-primary-container bg-primary-fixed p-4 text-primary">
+    <p class="font-body-sm"><%= message %></p>
+</div>
+<% } %>
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
 <!-- Add User Form Panel -->
 <div class="lg:col-span-4 bg-surface-container-lowest border border-outline-variant shadow-[0px_4px_20px_rgba(15,23,42,0.05)] rounded-DEFAULT p-margin-sm">
@@ -281,7 +286,59 @@
 </form>
 </div>
 <!-- Authorized Users Table Panel -->
-<div class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant shadow-[0px_4px_20px_rgba(15,23,42,0.05)] rounded-DEFAULT p-margin-sm flex flex-col h-full">
+<div class="lg:col-span-8 flex flex-col gap-margin-md">
+<div class="bg-surface-container-lowest border border-outline-variant shadow-[0px_4px_20px_rgba(15,23,42,0.05)] rounded-DEFAULT p-margin-sm flex flex-col h-full">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-margin-sm gap-margin-sm">
+<h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-base">
+<span class="material-symbols-outlined text-secondary">hourglass_top</span>
+                        Pending Login Requests
+                    </h2>
+</div>
+<div class="overflow-x-auto rounded-DEFAULT border border-outline-variant bg-surface">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Name</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Email</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Role</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Purpose</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Organization</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Architecture</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="font-technical-sm text-technical-sm text-on-surface divide-y divide-outline-variant">
+<% if (pendingRequests && pendingRequests.length) { %>
+    <% pendingRequests.forEach(function(request) { %>
+    <tr class="hover:bg-surface-container-lowest transition-colors">
+        <td class="py-3 px-4"><%= request.name || request.username %></td>
+        <td class="py-3 px-4"><%= request.email %></td>
+        <td class="py-3 px-4"><%= request.role %></td>
+        <td class="py-3 px-4"><%= request.purpose %></td>
+        <td class="py-3 px-4"><%= request.organization || 'N/A' %></td>
+        <td class="py-3 px-4"><%= request.target_device %></td>
+        <td class="py-3 px-4 text-right flex gap-2 justify-end">
+            <form method="POST" action="/admin/request/approve" class="inline">
+                <input type="hidden" name="id" value="<%= request.id %>" />
+                <button type="submit" class="rounded-full bg-primary px-4 py-2 text-on-primary font-semibold hover:bg-primary-container transition-colors">Approve</button>
+            </form>
+            <form method="POST" action="/admin/request/reject" class="inline">
+                <input type="hidden" name="id" value="<%= request.id %>" />
+                <button type="submit" class="rounded-full border border-error px-4 py-2 text-error font-semibold hover:bg-error-container hover:text-on-error transition-colors">Reject</button>
+            </form>
+        </td>
+    </tr>
+    <% }); %>
+<% } else { %>
+    <tr>
+        <td class="py-6 px-4 text-center text-body-sm text-on-surface-variant" colspan="7">No pending login requests.</td>
+    </tr>
+<% } %>
+</tbody>
+</table>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant shadow-[0px_4px_20px_rgba(15,23,42,0.05)] rounded-DEFAULT p-margin-sm flex flex-col h-full">
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-margin-sm gap-margin-sm">
 <h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-base">
 <span class="material-symbols-outlined text-secondary">group</span>
@@ -319,7 +376,10 @@
         <td class="py-3 px-4"><%= user.container_access %></td>
         <td class="py-3 px-4">Active</td>
         <td class="py-3 px-4 text-right">
-            <button class="text-error hover:text-on-error-container">Revoke</button>
+            <form method="POST" action="/admin/user/delete" class="inline">
+                <input type="hidden" name="id" value="<%= user.id %>" />
+                <button type="submit" class="text-error hover:text-on-error-container font-semibold">Delete</button>
+            </form>
         </td>
     </tr>
     <% }); %>

@@ -3,7 +3,7 @@
 <html class="light" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Contact - Singularity Hub</title>
+<title>Request for Login - Singularity Hub</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -117,7 +117,7 @@
 <div class="hidden md:flex items-center gap-margin-sm h-full">
 <a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/download">Containers</a>
 <a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="#">Documentation</a>
-<a class="text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary font-bold pb-1 h-full flex items-center" href="/contact">Contact</a>
+<a class="text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary font-bold pb-1 h-full flex items-center" href="/contact">Request for login</a>
 </div>
 </div>
 <div class="flex items-center gap-margin-sm">
@@ -131,6 +131,9 @@
 <span class="material-symbols-outlined">account_circle</span>
 </button>
 <% if (username) { %>
+<a class="bg-white text-primary border border-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container hover:text-on-primary transition-colors ml-2 hidden sm:block" href="/change-password" style="text-decoration: none;">
+                    Change Password
+                </a>
 <a class="bg-primary text-on-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container transition-colors ml-2 hidden sm:block" href="/logout" style="text-decoration: none;">
                     Logout
                 </a>
@@ -149,8 +152,8 @@
 <div class="flex items-center gap-3">
 <span class="material-symbols-outlined text-blue-600 bg-blue-100 p-2 rounded-full" style="font-variation-settings: 'FILL' 1;">contact_support</span>
 <div>
-<h1 class="font-headline-lg text-headline-lg text-on-background">Contact Us</h1>
-<p class="font-body-sm text-body-sm text-on-surface-variant">Get in touch with the Singularity Hub team for support and access requests.</p>
+<h1 class="font-headline-lg text-headline-lg text-on-background">Request for Login</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Submit your login access request here and our team will review it within 24 hours.</p>
 </div>
 </div>
 </div>
@@ -175,34 +178,50 @@ nsmss@cdac.in
 <div class="flex items-start gap-4">
 <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">person_add</span>
 <div class="flex-1">
-<h2 class="font-headline-md text-headline-md text-on-surface mb-2">Request Container Access</h2>
-<p class="font-body-md text-body-md text-on-surface-variant mb-4">To request access to specific containers, please provide the following details in your email to:</p>
-<a href="mailto:nsmss@cdac.in" class="inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded font-technical-md hover:bg-primary-container transition-colors mb-4">
-<span class="material-symbols-outlined" style="font-size: 18px;">email</span>
-nsmss@cdac.in
-</a>
-<ul class="space-y-2 font-body-md text-body-md text-on-surface-variant">
-<li class="flex items-center gap-2">
-<span class="material-symbols-outlined text-primary" style="font-size: 16px;">check_circle</span>
-<strong>Name:</strong> Your full name
-</li>
-<li class="flex items-center gap-2">
-<span class="material-symbols-outlined text-primary" style="font-size: 16px;">check_circle</span>
-<strong>Email:</strong> Your email address
-</li>
-<li class="flex items-center gap-2">
-<span class="material-symbols-outlined text-primary" style="font-size: 16px;">check_circle</span>
-<strong>Purpose:</strong> Intended use of the containers
-</li>
-<li class="flex items-center gap-2">
-<span class="material-symbols-outlined text-primary" style="font-size: 16px;">check_circle</span>
-<strong>Target Device/Architecture:</strong> e.g., x86_64, ARM64
-</li>
-<li class="flex items-center gap-2">
-<span class="material-symbols-outlined text-primary" style="font-size: 16px;">check_circle</span>
-<strong>Organization:</strong> Your affiliated organization
-</li>
-</ul>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-2">Request for Login</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4">Complete the form below and we'll process your login request as quickly as possible.</p>
+<% if (error) { %>
+<div class="rounded-lg border border-error-container bg-error-container px-4 py-3 mb-4 text-on-error-container">
+<p class="font-body-sm font-semibold">There was an issue submitting your request:</p>
+<p class="font-body-sm"><%= error %></p>
+</div>
+<% } %>
+<form method="POST" action="/contact" class="space-y-4">
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+<div>
+<label class="block text-body-sm text-on-surface mb-1" for="name">Name</label>
+<input id="name" name="name" type="text" required value="<%= formData.name || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" />
+</div>
+<div>
+<label class="block text-body-sm text-on-surface mb-1" for="email">Email</label>
+<input id="email" name="email" type="email" required value="<%= formData.email || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" />
+</div>
+<div>
+<label class="block text-body-sm text-on-surface mb-1" for="role">Roles</label>
+<select id="role" name="role" required class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none">
+<option value="" disabled <%= !formData.role ? 'selected' : '' %>>Select a role</option>
+<option value="Deployment team" <%= formData.role === 'Deployment team' ? 'selected' : '' %>>Deployment team</option>
+<option value="Product Owner" <%= formData.role === 'Product Owner' ? 'selected' : '' %>>Product Owner</option>
+<option value="CI/CD Executor" <%= formData.role === 'CI/CD Executor' ? 'selected' : '' %>>CI/CD Executor</option>
+<option value="CI/CD Admin" <%= formData.role === 'CI/CD Admin' ? 'selected' : '' %>>CI/CD Admin</option>
+<option value="TCG" <%= formData.role === 'TCG' ? 'selected' : '' %>>TCG</option>
+</select>
+</div>
+<div>
+<label class="block text-body-sm text-on-surface mb-1" for="target-device">Target Device/Architecture</label>
+<input id="target-device" name="target-device" type="text" required value="<%= formData.targetDevice || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="e.g., x86_64, ARM64" />
+</div>
+</div>
+<div>
+<label class="block text-body-sm text-on-surface mb-1" for="purpose">Purpose</label>
+<textarea id="purpose" name="purpose" required rows="4" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="Describe your intended use"><%= formData.purpose || '' %></textarea>
+</div>
+<div>
+<label class="block text-body-sm text-on-surface mb-1" for="organization">Organization</label>
+<input id="organization" name="organization" type="text" required value="<%= formData.organization || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" />
+</div>
+<button type="submit" class="inline-flex items-center justify-center rounded bg-primary px-6 py-3 text-on-primary font-semibold hover:bg-primary-container transition-colors">Submit Request</button>
+</form>
 </div>
 </div>
 </div>

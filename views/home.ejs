@@ -135,9 +135,16 @@
 <button class="text-on-surface-variant hover:text-primary-container transition-colors duration-200 p-2 flex items-center justify-center mr-2" title="<%= username ? username : 'Guest' %>">
 <span class="material-symbols-outlined">account_circle</span>
 </button>
+<% if (username) { %>
+<a class="text-primary hover:text-primary-container transition-colors font-body-sm font-semibold" href="/change-password">Change Password</a>
+<a class="bg-primary text-on-primary font-label-caps text-label-caps px-4 py-2 rounded shadow-sm hover:bg-primary-container transition-colors flex items-center gap-2" href="/logout" style="text-decoration: none;">
+                    Logout
+                </a>
+<% } else { %>
 <a class="bg-primary text-on-primary font-label-caps text-label-caps px-4 py-2 rounded shadow-sm hover:bg-primary-container transition-colors flex items-center gap-2" href="/login" style="text-decoration: none;">
                     Sign In
                 </a>
+<% } %>
 </div>
 </div>
 </header>

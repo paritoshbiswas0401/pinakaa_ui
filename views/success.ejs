@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Request Sent - Singularity Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-16">
+<nav class="bg-surface-container-lowest shadow-sm fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 h-16">
+    <a href="/" class="font-bold text-primary text-xl" style="text-decoration: none;">Singularity Hub</a>
+    <div class="flex items-center gap-4">
+        <a class="text-on-surface-variant hover:text-primary transition-colors" href="/download">Containers</a>
+        <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Documentation</a>
+        <a class="text-primary font-bold border-b-2 border-primary pb-1" href="/contact">Request for login</a>
+    </div>
+</nav>
+<main class="flex-grow w-full max-w-4xl mx-auto px-4 md:px-6 py-20">
+    <div class="rounded-3xl bg-white border border-surface-variant shadow-[0_20px_50px_rgba(15,23,42,0.08)] p-10 text-center">
+        <span class="material-symbols-outlined text-5xl text-primary mb-6 inline-block" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+        <h1 class="text-4xl font-semibold mb-4">Request sent successfully</h1>
+        <p class="text-body-lg text-on-surface-variant mb-6">Your login request has been submitted. You will receive an email within 24 hours with next steps for account creation.</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="/" class="rounded-full bg-primary text-on-primary px-6 py-3 font-semibold hover:bg-primary-container transition-colors">Return to home</a>
+            <a href="/contact" class="rounded-full border border-outline-variant px-6 py-3 text-body-sm hover:border-primary hover:text-primary transition-colors">Submit another request</a>
+        </div>
+    </div>
+</main>
+</body>
+</html>

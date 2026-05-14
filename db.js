@@ -10,6 +10,7 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE,
+        name TEXT,
         email TEXT,
         password TEXT,
         purpose TEXT,
@@ -17,19 +18,33 @@ db.serialize(() => {
         container_access TEXT, 
         role TEXT DEFAULT 'user',
         organization TEXT,
+        status TEXT DEFAULT 'active',
         last_download DATETIME
     )`);
 
     // Add columns if they don't exist (for existing databases)
+    db.run(`ALTER TABLE users ADD COLUMN name TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding name column:', err);
+        }
+    });
     db.run(`ALTER TABLE users ADD COLUMN organization TEXT`, (err) => {
         if (err && !err.message.includes('duplicate column name')) {
             console.error('Error adding organization column:', err);
+        }
+    });
+    db.run(`ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active'`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding status column:', err);
         }
     });
     db.run(`ALTER TABLE users ADD COLUMN last_download DATETIME`, (err) => {
         if (err && !err.message.includes('duplicate column name')) {
             console.error('Error adding last_download column:', err);
         }
+    });
+    db.run(`UPDATE users SET status = 'active' WHERE status IS NULL`, (err) => {
+        if (err) console.error('Error updating user status defaults:', err);
     });
 
     // Create System Stats Table for Download Counts
