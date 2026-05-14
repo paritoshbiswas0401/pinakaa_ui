@@ -154,7 +154,10 @@
 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
 <span class="material-symbols-outlined text-outline">key</span>
 </div>
-<input class="w-full pl-10 pr-3 py-2 bg-surface border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-technical-md text-technical-md text-on-surface" id="password" name="password" placeholder="••••••••••••" required="" type="password"/>
+<input class="w-full pl-10 pr-12 py-2 bg-surface border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-technical-md text-technical-md text-on-surface" id="password" name="password" placeholder="••••••••••••" autocomplete="current-password" required="" type="password"/>
+<button id="togglePassword" type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-primary transition-colors" aria-label="Toggle password visibility">
+<span class="material-symbols-outlined">visibility</span>
+</button>
 </div>
 </div>
 <!-- Captcha Challenge (Simulated Visual Challenge) -->
@@ -190,6 +193,37 @@
 <p class="font-technical-sm text-technical-sm text-on-surface-variant">Require assistance or access? Visit our <a class="text-primary hover:underline" href="/contact">Contact page</a> for details on how to reach us.</p>
 </div>
 </div>
+</main>
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+    const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
+    const loginForm = document.querySelector('form[action="/login"]');
+
+    togglePassword?.addEventListener('click', () => {
+        if (!passwordInput) return;
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        togglePassword.innerHTML = `<span class="material-symbols-outlined">${isPassword ? 'visibility_off' : 'visibility'}</span>`;
+    });
+
+    loginForm?.addEventListener('submit', (event) => {
+        const username = document.getElementById('username')?.value.trim();
+        const password = passwordInput?.value.trim();
+        const captcha = document.getElementById('captcha')?.value.trim();
+
+        if (!username || !password || !captcha) {
+            event.preventDefault();
+            alert('Please enter your username, password, and captcha code.');
+            return;
+        }
+
+        if (document.getElementById('captcha')) {
+            document.getElementById('captcha').value = captcha.toUpperCase();
+        }
+    });
+});
+</script>
 </main>
 <!-- Footer -->
 <footer class="w-full bg-surface-container-low border-t border-outline-variant py-margin-md px-margin-md flex flex-col md:flex-row justify-between items-center gap-base max-w-container-max mx-auto">

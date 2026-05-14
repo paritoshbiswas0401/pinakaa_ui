@@ -213,80 +213,8 @@
 </div>
 <% } %>
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-<!-- Add User Form Panel -->
-<div class="lg:col-span-4 bg-surface-container-lowest border border-outline-variant shadow-[0px_4px_20px_rgba(15,23,42,0.05)] rounded-DEFAULT p-margin-sm">
-<h2 class="font-headline-md text-headline-md text-on-surface mb-margin-sm flex items-center gap-base">
-<span class="material-symbols-outlined text-primary">person_add</span>
-                    Provision Access
-                </h2>
-<form class="space-y-margin-sm">
-<div>
-<label class="block font-label-caps text-label-caps text-on-surface-variant mb-base" for="username">Username</label>
-<div class="relative">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">person</span>
-<input class="w-full pl-10 pr-3 py-2 bg-surface-container-low border border-outline-variant rounded-DEFAULT focus:border-primary focus:ring-1 focus:ring-primary font-technical-md text-technical-md text-on-surface transition-colors" id="username" placeholder="e.g. jdoe_hpc" type="text"/>
-</div>
-</div>
-<div>
-<label class="block font-label-caps text-label-caps text-on-surface-variant mb-base" for="email">Institutional Email</label>
-<div class="relative">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">mail</span>
-<input class="w-full pl-10 pr-3 py-2 bg-surface-container-low border border-outline-variant rounded-DEFAULT focus:border-primary focus:ring-1 focus:ring-primary font-body-sm text-body-sm text-on-surface transition-colors" id="email" placeholder="user@institution.edu" type="email"/>
-</div>
-</div>
-<div>
-<label class="block font-label-caps text-label-caps text-on-surface-variant mb-base" for="password">Initial Password</label>
-<div class="relative">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">lock</span>
-<input class="w-full pl-10 pr-3 py-2 bg-surface-container-low border border-outline-variant rounded-DEFAULT focus:border-primary focus:ring-1 focus:ring-primary font-technical-md text-technical-md text-on-surface transition-colors" id="password" placeholder="••••••••" type="password"/>
-</div>
-</div>
-<div>
-<label class="block font-label-caps text-label-caps text-on-surface-variant mb-base" for="purpose">Purpose for Download</label>
-<div class="relative">
-<span class="material-symbols-outlined absolute left-3 top-3 text-outline text-[18px]">description</span>
-<textarea class="w-full pl-10 pr-3 py-2 bg-surface-container-low border border-outline-variant rounded-DEFAULT focus:border-primary focus:ring-1 focus:ring-primary font-body-sm text-body-sm text-on-surface transition-colors" id="purpose" placeholder="Brief description of research or project..." rows="3"></textarea>
-</div>
-</div>
-<div>
-<label class="block font-label-caps text-label-caps text-on-surface-variant mb-base" for="container-access">Container Access</label>
-<div class="relative">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">package_2</span>
-<select class="w-full pl-10 pr-3 py-2 bg-surface-container-low border border-outline-variant rounded-DEFAULT focus:border-primary focus:ring-1 focus:ring-primary font-body-sm text-body-sm text-on-surface transition-colors appearance-none" id="container-access">
-<option>Standard CPU</option>
-<option>GPU-Optimized</option>
-<option>Security Audited</option>
-<option>All Containers</option>
-</select>
-<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">arrow_drop_down</span>
-</div>
-</div><div>
-<label class="block font-label-caps text-label-caps text-on-surface-variant mb-base" for="arch">Target Architecture</label>
-<div class="relative">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">memory</span>
-<select class="w-full pl-10 pr-3 py-2 bg-surface-container-low border border-outline-variant rounded-DEFAULT focus:border-primary focus:ring-1 focus:ring-primary font-technical-md text-technical-md text-on-surface transition-colors appearance-none" id="arch">
-<option>x86_64</option>
-<option>aarch64</option>
-<option>ppc64le</option>
-</select>
-<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">arrow_drop_down</span>
-</div>
-</div>
-<div>
-<label class="block font-label-caps text-label-caps text-on-surface-variant mb-base" for="organization">Organization</label>
-<div class="relative">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">business</span>
-<input class="w-full pl-10 pr-3 py-2 bg-surface-container-low border border-outline-variant rounded-DEFAULT focus:border-primary focus:ring-1 focus:ring-primary font-body-sm text-body-sm text-on-surface transition-colors" id="organization" placeholder="e.g. Stanford University" type="text"/>
-</div>
-</div>
-<button class="w-full bg-primary text-on-primary font-body-md text-body-md font-semibold py-2 px-4 rounded-DEFAULT hover:bg-primary-container hover:text-on-primary-container transition-colors flex items-center justify-center gap-base" type="button">
-<span class="material-symbols-outlined text-[20px]">add_circle</span>
-                        Authorize User
-                    </button>
-</form>
-</div>
 <!-- Authorized Users Table Panel -->
-<div class="lg:col-span-8 flex flex-col gap-margin-md">
+<div class="lg:col-span-12 flex flex-col gap-margin-md">
 <div class="bg-surface-container-lowest border border-outline-variant shadow-[0px_4px_20px_rgba(15,23,42,0.05)] rounded-DEFAULT p-margin-sm flex flex-col h-full">
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-margin-sm gap-margin-sm">
 <h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-base">
@@ -396,7 +324,6 @@
 </div>
 </div>
 </main>
-<!-- Footer (Shared Component) -->
 <footer class="w-full py-margin-md px-margin-md flex flex-col md:flex-row justify-between items-center gap-base max-w-container-max mx-auto bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant dark:border-outline mt-auto">
 <div class="flex flex-col items-center md:items-start gap-1">
 <span class="font-headline-sm text-headline-sm font-semibold text-on-surface dark:text-inverse-on-surface">Singularity Hub</span>
@@ -410,34 +337,4 @@
 <a class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Status</a>
 </nav>
 </footer>
-<script>
-document.querySelector('button[type="button"]').addEventListener('click', async () => {
-    const username = document.getElementById('username').value;
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const purpose = document.getElementById('purpose').value;
-    const containerAccess = document.getElementById('container-access').value;
-    const arch = document.getElementById('arch').value;
-    const organization = document.getElementById('organization').value;
-
-    if (!username || !email || !password || !purpose || !organization) {
-        alert('Please fill all fields');
-        return;
-    }
-
-    const response = await fetch('/admin/add-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password, purpose, 'container-access': containerAccess, arch, organization })
-    });
-
-    const result = await response.json();
-    if (result.success) {
-        alert('User added successfully');
-        location.reload();
-    } else {
-        alert('Error: ' + result.error);
-    }
-});
-</script>
 </body></html>

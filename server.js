@@ -53,15 +53,23 @@ app.get('/', (req, res) => {
 
 // 2. Login Page
 app.get('/login', (req, res) => {
+    if (req.session.userId) {
+        return res.redirect(req.session.role === 'admin' ? '/admin' : '/download');
+    }
     res.render('login', { error: null });
 });
 
 app.post('/login', (req, res) => {
-    const { username, password, captcha } = req.body;
+    const username = (req.body.username || '').trim();
+    const password = (req.body.password || '').trim();
+    const captcha = (req.body.captcha || '').trim();
 
-    // Simple captcha verification based on the visual in your HTML
+    if (!username || !password || !captcha) {
+        return res.render('login', { error: 'Username, password, and captcha are required.' });
+    }
+
     if (captcha.toUpperCase() !== '8F2A') {
-        return res.render('login', { error: 'Invalid Captcha' });
+        return res.render('login', { error: 'Invalid captcha code.' });
     }
 
     db.get("SELECT * FROM users WHERE (username = ? OR email = ?) AND password = ? AND status = 'active'", [username, username, password], (err, user) => {
@@ -72,15 +80,14 @@ app.post('/login', (req, res) => {
             req.session.access = user.container_access;
             req.session.purpose = user.purpose;
             req.session.targetDevice = user.target_device;
-            
-            // Route based on role
+
             if (user.role === 'admin') {
                 res.redirect('/admin');
             } else {
                 res.redirect('/download');
             }
         } else {
-            res.render('login', { error: 'Invalid credentials' });
+            res.render('login', { error: 'Invalid credentials. Please check your username and password.' });
         }
     });
 });
@@ -111,6 +118,14 @@ app.post('/admin/add-user', (req, res) => {
     if (req.session.role !== 'admin') return res.status(403).json({ error: "Unauthorized" });
 
     const { username, email, password, purpose, 'container-access': containerAccess, arch, organization } = req.body;
+    if (!username || !email || !password || !purpose || !containerAccess || !arch || !organization) {
+        return res.status(400).json({ error: 'Please fill in all required fields.' });
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+        return res.status(400).json({ error: 'Please provide a valid email address.' });
+    }
 
     db.run(`INSERT INTO users (username, email, password, purpose, target_device, container_access, role, organization) 
             VALUES (?, ?, ?, ?, ?, ?, 'user', ?)`, [username, email, password, purpose, arch, containerAccess, organization], function(err) {
@@ -267,6 +282,7 @@ app.post('/api/increment-download', (req, res) => {
 // 6. Logout
 app.get('/logout', (req, res) => {
     req.session.destroy((err) => {
+        res.clearCookie('connect.sid');
         if (err) return res.redirect('/login');
         res.redirect('/');
     });
