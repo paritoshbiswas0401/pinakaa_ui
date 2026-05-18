@@ -43,6 +43,21 @@ db.serialize(() => {
             console.error('Error adding last_download column:', err);
         }
     });
+    db.run(`ALTER TABLE users ADD COLUMN product_name TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding product_name column:', err);
+        }
+    });
+    db.run(`ALTER TABLE users ADD COLUMN team_name TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding team_name column:', err);
+        }
+    });
+    db.run(`ALTER TABLE users ADD COLUMN prerequisites TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding prerequisites column:', err);
+        }
+    });
     db.run(`UPDATE users SET status = 'active' WHERE status IS NULL`, (err) => {
         if (err) console.error('Error updating user status defaults:', err);
     });

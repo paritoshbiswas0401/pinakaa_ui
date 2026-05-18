@@ -114,9 +114,17 @@
 <div class="flex items-center gap-margin-md">
 <a href="/" class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary tracking-tight hover:opacity-80 transition-opacity" style="text-decoration: none;">Singularity Hub</a>
 <div class="hidden md:flex items-center gap-margin-sm h-full">
+<% if (role === 'admin') { %>
 <a class="text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary font-bold pb-1 h-full flex items-center" href="/download">Containers</a>
-<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="#">Documentation</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/documentation">Documentation</a>
 <a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/contact" title="Request container access: Name, Email, Purpose, Target Device/Architecture, Organization">Contact</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/contact">Support</a>
+<% } else { %>
+<% if (role !== 'Product Owner') { %>
+<a class="text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary font-bold pb-1 h-full flex items-center" href="/download">Containers</a>
+<% } %>
+<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/contact" title="Request container access: Name, Email, Purpose, Target Device/Architecture, Organization">Contact</a>
+<% } %>
 </div>
 </div>
 <div class="flex items-center gap-margin-sm">
@@ -161,7 +169,12 @@
 <% } %>
 </div>
 </div>
+<% if (warningMessage) { %>
+<div class="mb-6 rounded-xl border border-error-container bg-error-container/10 p-4 text-error">
+    <h2 class="font-headline-md text-headline-md mb-2">Access Restricted</h2>
+    <p class="font-body-sm text-body-sm"> <%= warningMessage %> Please contact your administrator or submit a request for Deployment Team access if you need container downloads.</p>
 </div>
+<% } %>
 <!-- Dashboard Layout Grid -->
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
 <!-- Left Column: Primary Download Area -->
@@ -269,9 +282,12 @@
 
 <script>
 function triggerDownload(filename) {
+    const role = '<%= role || '' %>';
+    if (role === 'Product Owner') {
+        return alert('Product Owner accounts are not permitted to download containers. Deployment Team role is required.');
+    }
     fetch('/api/increment-download', { method: 'POST' })
     .then(response => {
-        // Trigger actual .sif file download here via window.location or a hidden link
         alert(`Download initiated for ${filename}. Database count updated.`);
     });
 }

@@ -42,12 +42,17 @@ app.use(session({
     saveUninitialized: true
 }));
 
+const baseViewModel = (req) => ({
+    username: req.session.username,
+    role: req.session.role || null
+});
+
 // --- ROUTES ---
 
 // 1. Home Page
 app.get('/', (req, res) => {
     db.get("SELECT total_downloads FROM stats WHERE id = 1", (err, row) => {
-        res.render('home', { downloads: row ? row.total_downloads : 0, username: req.session.username });
+        res.render('home', { downloads: row ? row.total_downloads : 0, ...baseViewModel(req) });
     });
 });
 
@@ -56,7 +61,7 @@ app.get('/login', (req, res) => {
     if (req.session.userId) {
         return res.redirect(req.session.role === 'admin' ? '/admin' : '/download');
     }
-    res.render('login', { error: null });
+    res.render('login', { error: null, ...baseViewModel(req) });
 });
 
 app.post('/login', (req, res) => {
@@ -87,7 +92,7 @@ app.post('/login', (req, res) => {
                 res.redirect('/download');
             }
         } else {
-            res.render('login', { error: 'Invalid credentials. Please check your username and password.' });
+            res.render('login', { error: 'Invalid credentials. Please check your username and password.', ...baseViewModel(req) });
         }
     });
 });
@@ -106,8 +111,8 @@ app.get('/admin', (req, res) => {
                 users: users,
                 pendingRequests: pendingRequests,
                 adminName: req.session.username,
-                username: req.session.username,
-                message: req.query.message || null
+                message: req.query.message || null,
+                ...baseViewModel(req)
             });
         });
     });
@@ -197,7 +202,7 @@ const allContainers = [
     {
         title: 'AMD OpenCL Compute Runtime',
         description: 'Container image for AMD developers with OpenCL tooling, optimized for x86_64 platforms and targeted compute workloads.',
-        access: 'All',
+        access: 'AMD Based',
         arch: 'x86_64',
         purpose: 'AMD Developer',
         downloads: '9.1k',
@@ -209,7 +214,7 @@ const allContainers = [
     {
         title: 'Bioinformatics x86 Toolkit',
         description: 'Curated bioinformatics environment for x86_64 clusters with preloaded genomics tools, MPI, and large dataset support.',
-        access: 'All',
+        access: 'CPU-Only',
         arch: 'x86_64',
         purpose: 'Bioinformatics',
         downloads: '6.8k',
@@ -219,9 +224,21 @@ const allContainers = [
         stable: false
     },
     {
+        title: 'Intel HPC Platform',
+        description: 'Optimized Intel-based HPC runtime for x86_64 compute nodes with CPU-only performance tuning and MPI acceleration.',
+        access: 'Intel Based',
+        arch: 'x86_64',
+        purpose: 'AI Research',
+        downloads: '5.7k',
+        size: '3.9 GB',
+        estimate: '~2 mins @ 1Gbps',
+        filename: 'intel-hpc.sif',
+        stable: true
+    },
+    {
         title: 'Edge HPC Container',
         description: 'Lightweight runtime for edge and embedded HPC workloads on ARM-based hardware with accelerated inference and data streaming support.',
-        access: 'All',
+        access: 'For Single Server',
         arch: 'arm64',
         purpose: 'Edge Computing',
         downloads: '4.3k',
@@ -234,29 +251,34 @@ const allContainers = [
 
 // 4. Download Centre
 app.get('/download', (req, res) => {
-    if (req.session.role === 'admin') return res.redirect('/admin');
-
     let containers = allContainers;
     let personalized = false;
+    let warningMessage = null;
 
-    if (req.session.userId && req.session.role === 'user') {
+    if (req.session.role === 'Product Owner') {
+        containers = [];
+        warningMessage = 'Product Owner role cannot download containers. Deployment Team role is required to access container downloads.';
+    } else if (req.session.userId && (req.session.role === 'user' || req.session.role === 'Deployment team')) {
         personalized = true;
         const purpose = (req.session.purpose || '').toLowerCase();
         const arch = (req.session.targetDevice || '').toLowerCase();
+        const accessPref = (req.session.access || '').toLowerCase();
 
         containers = allContainers.filter((container) => {
             const purposeMatch = container.purpose.toLowerCase().includes(purpose) || purpose.includes(container.purpose.toLowerCase());
             const archMatch = container.arch.toLowerCase() === arch || arch.includes(container.arch.toLowerCase()) || (container.arch === 'x86_64' && arch.includes('x86'));
-            return purposeMatch && archMatch;
+            const accessMatch = !accessPref || accessPref === 'all' || container.access.toLowerCase().includes(accessPref) || accessPref.includes(container.access.toLowerCase());
+            return purposeMatch && archMatch && accessMatch;
         });
     }
 
     res.render('download', {
-        username: req.session.username,
         access: req.session.access,
         containers,
         personalized,
-        headerLabel: personalized ? `Containers tailored for ${req.session.username}` : 'All available containers'
+        warningMessage,
+        headerLabel: personalized ? `Containers tailored for ${req.session.username}` : 'All available containers',
+        ...baseViewModel(req)
     });
 });
 
@@ -290,18 +312,38 @@ app.get('/logout', (req, res) => {
 
 // 7. Contact Page
 app.get('/contact', (req, res) => {
-    res.render('contact', { username: req.session.username, error: null, formData: {} });
+    res.render('contact', { error: null, formData: {}, ...baseViewModel(req) });
+});
+
+app.get('/documentation', (req, res) => {
+    res.render('documentation', { ...baseViewModel(req) });
 });
 
 app.post('/contact', (req, res) => {
-    const { name, email, purpose, 'target-device': targetDevice, organization, role } = req.body;
-    const formData = { name, email, purpose, targetDevice, organization, role };
+    const { name, email, purpose, 'target-device': targetDevice, organization, role, 'container-access': containerAccess, product_name: productName, team_name: teamName, prerequisites } = req.body;
+    const formData = { name, email, purpose, targetDevice, organization, role, containerAccess, productName, teamName, prerequisites };
 
     if (!name || !email || !purpose || !targetDevice || !organization || !role) {
         return res.render('contact', {
-            username: req.session.username,
             error: 'Please complete all fields before submitting the request.',
-            formData
+            formData,
+            ...baseViewModel(req)
+        });
+    }
+
+    if (role === 'Product Owner' && (!productName || !teamName || !prerequisites)) {
+        return res.render('contact', {
+            error: 'Product Owner requests require Product name, Team name, and Prerequisites.',
+            formData,
+            ...baseViewModel(req)
+        });
+    }
+
+    if (role === 'Deployment team' && !containerAccess) {
+        return res.render('contact', {
+            error: 'Deployment team requests require a container access type selection.',
+            formData,
+            ...baseViewModel(req)
         });
     }
 
@@ -312,34 +354,34 @@ app.post('/contact', (req, res) => {
     db.get("SELECT * FROM users WHERE email = ?", [email], (err, existingUser) => {
         if (err) {
             return res.render('contact', {
-                username: req.session.username,
                 error: 'Unable to submit your request at this time. Please try again later.',
-                formData
+                formData,
+                ...baseViewModel(req)
             });
         }
 
         if (existingUser) {
             if (existingUser.status === 'active') {
                 return res.render('contact', {
-                    username: req.session.username,
                     error: 'An account already exists for this email address.',
-                    formData
+                    formData,
+                    ...baseViewModel(req)
                 });
             } else if (existingUser.status === 'pending') {
                 return res.render('contact', {
-                    username: req.session.username,
                     error: 'A login request using this email is already pending review.',
-                    formData
+                    formData,
+                    ...baseViewModel(req)
                 });
             } else if (existingUser.status === 'rejected') {
                 // Allow resubmission by updating the existing rejected request to pending
-                db.run(`UPDATE users SET name = ?, password = ?, purpose = ?, target_device = ?, role = ?, organization = ?, status = 'pending' WHERE id = ?`,
-                    [name, defaultUserPassword, purpose, targetDevice, role, organization, existingUser.id], function(updateErr) {
+                db.run(`UPDATE users SET name = ?, password = ?, purpose = ?, target_device = ?, role = ?, organization = ?, container_access = ?, product_name = ?, team_name = ?, prerequisites = ?, status = 'pending' WHERE id = ?`,
+                    [name, defaultUserPassword, purpose, targetDevice, role, organization, role === 'Deployment team' ? containerAccess : 'Login Request', productName || null, teamName || null, prerequisites || null, existingUser.id], function(updateErr) {
                         if (updateErr) {
                             return res.render('contact', {
-                                username: req.session.username,
                                 error: 'Unable to update your request at this time. Please try again later.',
-                                formData
+                                formData,
+                                ...baseViewModel(req)
                             });
                         }
 
@@ -347,7 +389,7 @@ app.post('/contact', (req, res) => {
                             from: 'Singularity Hub <no-reply@singularity-hub.local>',
                             to: requestRecipient,
                             subject: `Updated login request from ${name}`,
-                            text: `Updated login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nSubmitted At: ${now}`,
+                            text: `Updated login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nPrerequisites: ${prerequisites || 'N/A'}\nContainer Access: ${containerAccess || 'N/A'}\nSubmitted At: ${now}`,
                             html: `<p>An updated login request has been submitted with the following details:</p>
                                    <ul>
                                      <li><strong>Name:</strong> ${name}</li>
@@ -356,6 +398,10 @@ app.post('/contact', (req, res) => {
                                      <li><strong>Purpose:</strong> ${purpose}</li>
                                      <li><strong>Target Device/Architecture:</strong> ${targetDevice}</li>
                                      <li><strong>Organization:</strong> ${organization}</li>
+                                     <li><strong>Product Name:</strong> ${productName || 'N/A'}</li>
+                                     <li><strong>Team Name:</strong> ${teamName || 'N/A'}</li>
+                                     <li><strong>Prerequisites:</strong> ${prerequisites || 'N/A'}</li>
+                                     <li><strong>Container Access:</strong> ${containerAccess || 'N/A'}</li>
                                      <li><strong>Submitted At:</strong> ${now}</li>
                                    </ul>`
                         };
@@ -364,9 +410,9 @@ app.post('/contact', (req, res) => {
                             if (mailErr) {
                                 console.error('Mail send error:', mailErr);
                                 return res.render('contact', {
-                                    username: req.session.username,
                                     error: 'Your request was updated, but we could not send the notification email. Please contact support directly.',
-                                    formData
+                                    formData,
+                                    ...baseViewModel(req)
                                 });
                             }
 
@@ -377,14 +423,14 @@ app.post('/contact', (req, res) => {
             }
         }
 
-        db.run(`INSERT INTO users (username, name, email, password, purpose, target_device, container_access, role, organization, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-            [username, name, email, defaultUserPassword, purpose, targetDevice, 'Login Request', role, organization], function(insertErr) {
+        db.run(`INSERT INTO users (username, name, email, password, purpose, target_device, container_access, role, organization, product_name, team_name, prerequisites, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+            [username, name, email, defaultUserPassword, purpose, targetDevice, role === 'Deployment team' ? containerAccess : 'Login Request', role, organization, productName || null, teamName || null, prerequisites || null], function(insertErr) {
                 if (insertErr) {
                     return res.render('contact', {
-                        username: req.session.username,
                         error: 'Unable to save your request at this time. Please try again later.',
-                        formData
+                        formData,
+                        ...baseViewModel(req)
                     });
                 }
 
@@ -392,7 +438,7 @@ app.post('/contact', (req, res) => {
                     from: 'Singularity Hub <no-reply@singularity-hub.local>',
                     to: requestRecipient,
                     subject: `New login request from ${name}`,
-                    text: `New login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nSubmitted At: ${now}`,
+                    text: `New login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nPrerequisites: ${prerequisites || 'N/A'}\nContainer Access: ${containerAccess || 'N/A'}\nSubmitted At: ${now}`,
                     html: `<p>A new login request has been submitted with the following details:</p>
                            <ul>
                              <li><strong>Name:</strong> ${name}</li>
@@ -401,6 +447,10 @@ app.post('/contact', (req, res) => {
                              <li><strong>Purpose:</strong> ${purpose}</li>
                              <li><strong>Target Device/Architecture:</strong> ${targetDevice}</li>
                              <li><strong>Organization:</strong> ${organization}</li>
+                             <li><strong>Product Name:</strong> ${productName || 'N/A'}</li>
+                             <li><strong>Team Name:</strong> ${teamName || 'N/A'}</li>
+                             <li><strong>Prerequisites:</strong> ${prerequisites || 'N/A'}</li>
+                             <li><strong>Container Access:</strong> ${containerAccess || 'N/A'}</li>
                              <li><strong>Submitted At:</strong> ${now}</li>
                            </ul>`
                 };
@@ -409,9 +459,9 @@ app.post('/contact', (req, res) => {
                     if (mailErr) {
                         console.error('Mail send error:', mailErr);
                         return res.render('contact', {
-                            username: req.session.username,
                             error: 'Your request was recorded, but we could not send the notification email. Please contact support directly.',
-                            formData
+                            formData,
+                            ...baseViewModel(req)
                         });
                     }
 
@@ -423,7 +473,7 @@ app.post('/contact', (req, res) => {
 
 app.get('/change-password', (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
-    res.render('change-password', { username: req.session.username, error: null, success: null });
+    res.render('change-password', { error: null, success: null, ...baseViewModel(req) });
 });
 
 app.post('/change-password', (req, res) => {
@@ -460,7 +510,7 @@ app.post('/change-password', (req, res) => {
 });
 
 app.get('/success', (req, res) => {
-    res.render('success', { username: req.session.username });
+    res.render('success', { ...baseViewModel(req) });
 });
 
 app.listen(PORT, () => {

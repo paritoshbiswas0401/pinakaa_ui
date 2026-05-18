@@ -115,9 +115,16 @@
 <div class="flex items-center gap-margin-md">
 <a href="/" class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary tracking-tight hover:opacity-80 transition-opacity" style="text-decoration: none;">Singularity Hub</a>
 <div class="hidden md:flex items-center gap-margin-sm h-full">
+<% if (role === 'admin') { %>
+<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/download">Containers</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/documentation">Documentation</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/contact">Request for login</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/contact">Support</a>
+<% } else { %>
 <a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/download">Containers</a>
 <a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="#">Documentation</a>
 <a class="text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary font-bold pb-1 h-full flex items-center" href="/contact">Request for login</a>
+<% } %>
 </div>
 </div>
 <div class="flex items-center gap-margin-sm">
@@ -207,6 +214,35 @@ nsmss@cdac.in
 <option value="TCG" <%= formData.role === 'TCG' ? 'selected' : '' %>>TCG</option>
 </select>
 </div>
+<div id="productOwnerFields" class="space-y-4 <%= formData.role === 'Product Owner' ? '' : 'hidden' %>">
+    <div>
+        <label class="block text-body-sm text-on-surface mb-1" for="product_name">Product name</label>
+        <input id="product_name" name="product_name" type="text" value="<%= formData.productName || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="Product name" />
+    </div>
+    <div>
+        <label class="block text-body-sm text-on-surface mb-1" for="team_name">Team name</label>
+        <input id="team_name" name="team_name" type="text" value="<%= formData.teamName || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="Team name" />
+    </div>
+    <div>
+        <label class="block text-body-sm text-on-surface mb-1" for="prerequisites">Prerequisites</label>
+        <textarea id="prerequisites" name="prerequisites" rows="4" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="Describe prerequisites"><%= formData.prerequisites || '' %></textarea>
+    </div>
+</div>
+<div id="deploymentTeamAccess" class="space-y-4 <%= formData.role === 'Deployment team' ? '' : 'hidden' %>">
+    <div>
+        <label class="block text-body-sm text-on-surface mb-1" for="container-access">Container access type</label>
+        <select id="container-access" name="container-access" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none">
+            <option value="" disabled <%= !formData.containerAccess ? 'selected' : '' %>>Select container access</option>
+            <option value="GPU-Optimized" <%= formData.containerAccess === 'GPU-Optimized' ? 'selected' : '' %>>GPU-Optimized</option>
+            <option value="CPU-Only" <%= formData.containerAccess === 'CPU-Only' ? 'selected' : '' %>>CPU-Only</option>
+            <option value="AMD Based" <%= formData.containerAccess === 'AMD Based' ? 'selected' : '' %>>AMD Based</option>
+            <option value="Intel Based" <%= formData.containerAccess === 'Intel Based' ? 'selected' : '' %>>Intel Based</option>
+            <option value="RISC-V Based" <%= formData.containerAccess === 'RISC-V Based' ? 'selected' : '' %>>RISC-V Based</option>
+            <option value="For Cluster" <%= formData.containerAccess === 'For Cluster' ? 'selected' : '' %>>For Cluster</option>
+            <option value="For Single Server" <%= formData.containerAccess === 'For Single Server' ? 'selected' : '' %>>For Single Server</option>
+        </select>
+    </div>
+</div>
 <div>
 <label class="block text-body-sm text-on-surface mb-1" for="target-device">Target Device/Architecture</label>
 <input id="target-device" name="target-device" type="text" required value="<%= formData.targetDevice || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="e.g., x86_64, ARM64" />
@@ -226,5 +262,29 @@ nsmss@cdac.in
 </div>
 </div>
 </main>
+<script>
+const roleSelect = document.getElementById('role');
+const productOwnerFields = document.getElementById('productOwnerFields');
+const deploymentTeamAccess = document.getElementById('deploymentTeamAccess');
+
+function updateRoleFields() {
+    const role = roleSelect.value;
+    const isProductOwner = role === 'Product Owner';
+    const isDeploymentTeam = role === 'Deployment team';
+
+    productOwnerFields.classList.toggle('hidden', !isProductOwner);
+    deploymentTeamAccess.classList.toggle('hidden', !isDeploymentTeam);
+
+    document.getElementById('product_name').required = isProductOwner;
+    document.getElementById('team_name').required = isProductOwner;
+    document.getElementById('prerequisites').required = isProductOwner;
+    document.getElementById('container-access').required = isDeploymentTeam;
+}
+
+if (roleSelect) {
+    roleSelect.addEventListener('change', updateRoleFields);
+    updateRoleFields();
+}
+</script>
 </body>
 </html>

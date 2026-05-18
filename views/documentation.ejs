@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Documentation - Singularity Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-16">
+<nav class="bg-surface-container-lowest shadow-sm fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 h-16">
+    <a href="/" class="font-bold text-primary text-xl" style="text-decoration: none;">Singularity Hub</a>
+    <div class="flex items-center gap-4">
+        <a href="/" class="text-on-surface-variant hover:text-primary transition-colors">Home</a>
+        <a href="/download" class="text-on-surface-variant hover:text-primary transition-colors">Containers</a>
+        <% if (role === 'admin') { %>
+        <a href="/contact" class="text-on-surface-variant hover:text-primary transition-colors">Contact</a>
+        <a href="/contact" class="text-on-surface-variant hover:text-primary transition-colors">Support</a>
+        <% } %>
+    </div>
+</nav>
+<main class="flex-grow w-full max-w-5xl mx-auto px-6 py-20">
+    <div class="bg-white border border-surface-variant rounded-3xl shadow-[0_20px_50px_rgba(15,23,42,0.08)] p-10">
+        <h1 class="text-4xl font-semibold mb-4">Documentation</h1>
+        <p class="text-body-md text-on-surface-variant mb-6">Guidance for requesting access and using Singularity container images.</p>
+        <section class="mb-10">
+            <h2 class="font-headline-lg text-headline-lg mb-3">How to request access</h2>
+            <ol class="list-decimal list-inside space-y-3 text-body-md text-on-surface-variant">
+                <li>Open the <strong>Request for login</strong> form by clicking <a href="/contact" class="text-primary hover:underline">Contact</a>.</li>
+                <li>Select the role that describes your responsibility.</li>
+                <li>If you are a <strong>Product Owner</strong>, provide the product name, team name, and prerequisites.</li>
+                <li>If you are part of a <strong>Deployment team</strong>, choose the required container access type.</li>
+                <li>Submit the form and wait for administrator approval.</li>
+            </ol>
+        </section>
+        <section class="mb-10">
+            <h2 class="font-headline-lg text-headline-lg mb-3">How to use a Singularity container</h2>
+            <div class="space-y-4 text-body-md text-on-surface-variant">
+                <p>After your request is approved, log in and access the <strong>Containers</strong> page.</p>
+                <p>Download the Singularity image file (.sif) and run it on a host with Singularity installed:</p>
+                <pre class="bg-surface-container-low p-4 rounded text-sm overflow-x-auto">singularity exec <em>container-name.sif</em> <em>command</em></pre>
+                <p>For example:</p>
+                <pre class="bg-surface-container-low p-4 rounded text-sm overflow-x-auto">singularity exec tensorflow-hpc.sif python train.py</pre>
+            </div>
+        </section>
+        <section>
+            <h2 class="font-headline-lg text-headline-lg mb-3">Best practices</h2>
+            <ul class="list-disc list-inside space-y-3 text-body-md text-on-surface-variant">
+                <li>Use the right architecture and container access type for your workload.</li>
+                <li>Verify the container checksum before running it.</li>
+                <li>Contact the support team if you need additional access or have questions.</li>
+            </ul>
+        </section>
+    </div>
+</main>
+</body>
+</html>

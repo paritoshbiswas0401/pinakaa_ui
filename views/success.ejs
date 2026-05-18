@@ -12,7 +12,12 @@
     <a href="/" class="font-bold text-primary text-xl" style="text-decoration: none;">Singularity Hub</a>
     <div class="flex items-center gap-4">
         <a class="text-on-surface-variant hover:text-primary transition-colors" href="/download">Containers</a>
+        <% if (role === 'admin') { %>
+        <a class="text-on-surface-variant hover:text-primary transition-colors" href="/documentation">Documentation</a>
+        <a class="text-on-surface-variant hover:text-primary transition-colors" href="/contact">Support</a>
+        <% } else { %>
         <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Documentation</a>
+        <% } %>
         <a class="text-primary font-bold border-b-2 border-primary pb-1" href="/contact">Request for login</a>
     </div>
 </nav>
