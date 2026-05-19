@@ -125,6 +125,7 @@
 <% if (role !== 'Product Owner') { %>
 <a class="text-body-md text-primary dark:text-inverse-primary px-3 py-2 border-b-2 border-primary dark:border-inverse-primary font-bold pb-1 h-full flex items-center" href="/download">Containers</a>
 <% } %>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/documentation">Documentation</a>
 <a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/contact" title="Request container access: Name, Email, Purpose, Target Device/Architecture, Organization">Contact</a>
 <% } %>
 </div>
@@ -183,40 +184,34 @@
 <div class="lg:col-span-8 flex flex-col gap-gutter">
 
 <% if (containers.length > 0) { %>
-    <div class="grid grid-cols-1 gap-gutter">
+    <div class="bg-surface-container-lowest border border-surface-variant rounded-lg overflow-hidden shadow-sm">
+        <div class="grid grid-cols-12 gap-4 px-4 py-4 border-b border-surface-variant text-on-surface-variant font-label-caps text-label-caps uppercase tracking-[0.08em]">
+            <div class="col-span-5">Container</div>
+            <div class="col-span-4 hidden md:block">Tags</div>
+            <div class="col-span-2 text-right hidden sm:block">Downloads</div>
+            <div class="col-span-1 text-right">Action</div>
+        </div>
         <% containers.forEach(function(container) { %>
-            <div class="bg-surface-container-lowest border border-surface-variant rounded-lg p-margin-md shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_8px_30px_rgba(15,23,42,0.08)] transition-shadow">
-                <div class="flex justify-between items-start mb-margin-sm gap-4">
-                    <div class="min-w-0">
-                        <div class="flex flex-wrap items-center gap-2 mb-2">
-                            <h2 class="font-headline-md text-headline-md text-on-surface"><%= container.title %></h2>
-                            <% if (container.stable) { %>
-                            <span class="bg-green-100 text-green-800 font-technical-sm px-2 py-1 rounded border border-green-200 flex items-center gap-1"><span class="material-symbols-outlined" style="font-size: 14px;">check_circle</span> Stable Build</span>
-                            <% } %>
-                        </div>
-                        <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl"><%= container.description %></p>
-                    </div>
-                    <div class="bg-surface text-on-surface-variant px-3 py-1 rounded border border-outline-variant font-technical-md text-technical-md flex items-center gap-2">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
-                        <%= container.downloads %>
+            <div class="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-surface-container transition-colors">
+                <div class="col-span-5">
+                    <div class="font-headline-md text-headline-md text-on-surface"><%= container.title %></div>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant mt-1"><%= container.description %></p>
+                </div>
+                <div class="col-span-4 hidden md:block">
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.arch %></span>
+                        <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.access %></span>
+                        <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.purpose %></span>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2 mb-4">
-                    <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.arch %></span>
-                    <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.access %></span>
-                    <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.purpose %></span>
+                <div class="col-span-2 flex items-center justify-end text-right hidden sm:flex">
+                    <span class="font-technical-md text-technical-md text-on-surface"><%= container.downloads %></span>
                 </div>
-                <div class="mt-margin-md bg-surface-container p-margin-md rounded flex flex-col md:flex-row items-center justify-between gap-margin-sm border border-outline-variant">
-                    <div class="flex-1 w-full">
-                        <button onclick="triggerDownload('<%= container.filename %>')" class="w-full bg-primary hover:bg-primary-container text-on-primary font-headline-md text-headline-md py-4 px-6 rounded flex items-center justify-center gap-3 transition-colors shadow-sm">
-                            <span class="material-symbols-outlined" style="font-size: 28px;">download</span>
-                            Download Singularity Image (.sif)
-                        </button>
-                    </div>
-                    <div class="text-center md:text-right w-full md:w-auto">
-                        <div class="font-technical-md text-technical-md text-on-surface">File Size: <%= container.size %></div>
-                        <div class="font-body-sm text-body-sm text-on-surface-variant">Est. time: <%= container.estimate %></div>
-                    </div>
+                <div class="col-span-7 md:col-span-1 text-right">
+                    <button onclick="triggerDownload('<%= container.filename %>')" class="inline-flex items-center justify-center bg-primary hover:bg-primary-container text-on-primary text-body-sm font-semibold px-4 py-2 rounded transition-colors">
+                        <span class="material-symbols-outlined text-[18px] mr-2">download</span>
+                        Get
+                    </button>
                 </div>
             </div>
         <% }); %>
