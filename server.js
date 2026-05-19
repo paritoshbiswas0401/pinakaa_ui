@@ -35,6 +35,8 @@ const mailer = nodemailer.createTransport(transportOptions);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
+// Serve images placed in views/assets (e.g., pinakaa_logo.jpg)
+app.use('/assets', express.static(path.join(__dirname, 'views', 'assets')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
     secret: 'supercomputing-mission-secret',

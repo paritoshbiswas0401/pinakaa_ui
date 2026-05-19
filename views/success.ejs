@@ -7,16 +7,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 </head>
-<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-16">
-<nav class="bg-surface-container-lowest shadow-sm fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 h-16">
-    <a href="/" class="font-bold text-primary text-xl" style="text-decoration: none;">Singularity Hub</a>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-[80px]">
+<nav class="bg-surface-container-lowest shadow-sm fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 h-20">
+    <a href="/" class="flex items-center hover:opacity-80 transition-opacity" style="text-decoration: none;">
+        <img src="/assets/pinakaa_logo.jpg" alt="Pinakaa Logo" class="h-14 w-auto object-contain"/>
+    </a>
     <div class="flex items-center gap-4">
-        <a class="text-on-surface-variant hover:text-primary transition-colors" href="/download">Containers</a>
+        <a class="text-body-md text-on-surface-variant hover:text-primary transition-colors px-2 py-2" href="/download">Containers</a>
         <% if (role === 'admin') { %>
-        <a class="text-on-surface-variant hover:text-primary transition-colors" href="/documentation">Documentation</a>
-        <a class="text-on-surface-variant hover:text-primary transition-colors" href="/contact">Support</a>
+        <a class="text-body-md text-on-surface-variant hover:text-primary transition-colors px-2 py-2" href="/documentation">Documentation</a>
+        <a class="text-body-md text-on-surface-variant hover:text-primary transition-colors px-2 py-2" href="/admin">Support</a>
         <% } else { %>
-        <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Documentation</a>
+        <a class="text-body-md text-on-surface-variant hover:text-primary transition-colors px-2 py-2" href="#">Documentation</a>
         <% } %>
         <a class="text-primary font-bold border-b-2 border-primary pb-1" href="/contact">Request for login</a>
     </div>

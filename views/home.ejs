@@ -19,52 +19,52 @@
             theme: {
                 extend: {
                     "colors": {
-                        "primary-fixed": "#dde1ff",
+                        "primary-fixed": "#FFF6EE",
                         "on-error-container": "#93000a",
                         "inverse-surface": "#2d3133",
                         "on-secondary-fixed-variant": "#3f465c",
-                        "surface": "#f7f9fb",
-                        "primary": "#003ec7",
+                        "surface": "#ffffff",
+                        "primary": "#E84E1B",
                         "on-error": "#ffffff",
-                        "surface-container-highest": "#e0e3e5",
-                        "surface-tint": "#004ced",
-                        "on-primary-fixed": "#001452",
+                        "surface-container-highest": "#f4ede8",
+                        "surface-tint": "#E84E1B",
+                        "on-primary-fixed": "#4b1b00",
                         "on-background": "#191c1e",
                         "on-tertiary-fixed-variant": "#38485d",
-                        "secondary-container": "#dae2fd",
-                        "inverse-primary": "#b7c4ff",
+                        "secondary-container": "#FFF1E0",
+                        "inverse-primary": "#FFD6B3",
                         "on-secondary": "#ffffff",
-                        "tertiary-fixed-dim": "#b7c8e1",
+                        "tertiary-fixed-dim": "#F7DDBA",
                         "error": "#ba1a1a",
-                        "surface-container-high": "#e6e8ea",
-                        "primary-container": "#0052ff",
-                        "surface-bright": "#f7f9fb",
-                        "on-primary-fixed-variant": "#0038b6",
-                        "outline": "#737688",
-                        "surface-container": "#eceef0",
-                        "surface-container-low": "#f2f4f6",
+                        "surface-container-high": "#f7efe8",
+                        "primary-container": "#FFB67A",
+                        "surface-bright": "#ffffff",
+                        "on-primary-fixed-variant": "#9a3000",
+                        "outline": "#c9a78f",
+                        "surface-container": "#fff9f6",
+                        "surface-container-low": "#fffaf7",
                         "surface-container-lowest": "#ffffff",
                         "inverse-on-surface": "#eff1f3",
-                        "on-tertiary-container": "#d6e6ff",
+                        "on-tertiary-container": "#FFF7E6",
                         "on-tertiary-fixed": "#0b1c30",
-                        "secondary": "#565e74",
-                        "on-primary-container": "#dfe3ff",
-                        "surface-dim": "#d8dadc",
-                        "surface-variant": "#e0e3e5",
+                        "secondary": "#6B4226",
+                        "on-primary-container": "#4b1b00",
+                        "surface-dim": "#f1e7df",
+                        "surface-variant": "#f4ebe3",
                         "on-tertiary": "#ffffff",
-                        "tertiary-fixed": "#d3e4fe",
+                        "tertiary-fixed": "#FFD9AE",
                         "on-surface": "#191c1e",
-                        "primary-fixed-dim": "#b7c4ff",
-                        "on-secondary-container": "#5c647a",
-                        "tertiary-container": "#57677e",
+                        "primary-fixed-dim": "#FFD6B3",
+                        "on-secondary-container": "#4a3a2f",
+                        "tertiary-container": "#7a5a45",
                         "error-container": "#ffdad6",
-                        "background": "#f7f9fb",
+                        "background": "#fffaf7",
                         "on-primary": "#ffffff",
-                        "secondary-fixed": "#dae2fd",
-                        "secondary-fixed-dim": "#bec6e0",
+                        "secondary-fixed": "#FFF1E0",
+                        "secondary-fixed-dim": "#F0E0CF",
                         "on-secondary-fixed": "#131b2e",
-                        "outline-variant": "#c3c5d9",
-                        "tertiary": "#3f4f65",
+                        "outline-variant": "#e6d3c4",
+                        "tertiary": "#7a5a45",
                         "on-surface-variant": "#434656"
                     },
                     "borderRadius": {
@@ -114,27 +114,27 @@
         }
     </style>
 </head>
-<body class="bg-background text-on-background antialiased pt-[64px]"> <!-- Padding top to account for fixed navbar -->
+<body class="bg-background text-on-background antialiased pt-[80px]"> <!-- Padding top to account for fixed navbar -->
 <!-- TopNavBar (Generated from JSON) -->
 <header class="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest border-b border-outline-variant shadow-sm h-16">
 <div class="flex items-center justify-between px-margin-md h-full max-w-container-max mx-auto">
-<!-- Brand -->
+<!-- Brand: replace text with clickable logo -->
 <a href="/" class="flex items-center gap-margin-sm hover:opacity-80 transition-opacity" style="text-decoration: none;">
-<span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">hub</span>
-<span class="font-headline-md text-headline-md font-bold text-primary tracking-tight">Singularity Hub</span>
+    <img src="/assets/pinakaa_logo.jpg" alt="Pinakaa Logo" class="h-14 w-auto object-contain"/>
 </a>
 <!-- Navigation Links (Hidden on mobile for strict structural adherence, assumes a hamburger would exist normally but sticking to JSON) -->
 <nav class="hidden md:flex items-center gap-margin-md">
 <% if (role === 'admin') { %>
-<a class="text-on-surface-variant font-medium hover:text-primary-container transition-colors duration-200 font-label-caps text-label-caps" href="/download">Containers</a>
-<a class="text-on-surface-variant font-medium hover:text-primary-container transition-colors duration-200 font-label-caps text-label-caps" href="/documentation">Documentation</a>
-<a class="text-on-surface-variant font-medium hover:text-primary-container transition-colors duration-200 font-label-caps text-label-caps" href="/contact" title="Request container access: Name, Email, Purpose, Target Device/Architecture, Organization">Contact</a>
-<a class="text-on-surface-variant font-medium hover:text-primary-container transition-colors duration-200 font-label-caps text-label-caps" href="/contact">Support</a>
+<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/download">Containers</a>
+<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/documentation">Documentation</a>
+<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/contact" title="Request container access: Name, Email, Purpose, Target Device/Architecture, Organization">Contact</a>
+<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/admin">Support</a>
 <% } else { %>
 <% if (role !== 'Product Owner') { %>
-<a class="text-on-surface-variant font-medium hover:text-primary-container transition-colors duration-200 font-label-caps text-label-caps" href="/download">Containers</a>
+<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/download">Containers</a>
 <% } %>
-<a class="text-on-surface-variant font-medium hover:text-primary-container transition-colors duration-200 font-label-caps text-label-caps" href="/contact" title="Request container access: Name, Email, Purpose, Target Device/Architecture, Organization">Contact</a>
+<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/documentation">Documentation</a>
+<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/contact" title="Request container access: Name, Email, Purpose, Target Device/Architecture, Organization">Contact</a>
 <% } %>
 </nav>
 <!-- Trailing Actions -->

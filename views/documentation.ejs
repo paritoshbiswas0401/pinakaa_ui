@@ -7,15 +7,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 </head>
-<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-16">
-<nav class="bg-surface-container-lowest shadow-sm fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 h-16">
-    <a href="/" class="font-bold text-primary text-xl" style="text-decoration: none;">Singularity Hub</a>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-[80px]">
+<nav class="bg-surface-container-lowest shadow-sm fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 h-20">
+    <a href="/" class="flex items-center hover:opacity-80 transition-opacity" style="text-decoration: none;">
+        <img src="/assets/pinakaa_logo.jpg" alt="Pinakaa Logo" class="h-14 w-auto object-contain"/>
+    </a>
     <div class="flex items-center gap-4">
-        <a href="/" class="text-on-surface-variant hover:text-primary transition-colors">Home</a>
-        <a href="/download" class="text-on-surface-variant hover:text-primary transition-colors">Containers</a>
+        <a href="/" class="text-body-md text-on-surface-variant hover:text-primary transition-colors px-2 py-2">Home</a>
+        <a href="/download" class="text-body-md text-on-surface-variant hover:text-primary transition-colors px-2 py-2">Containers</a>
         <% if (role === 'admin') { %>
-        <a href="/contact" class="text-on-surface-variant hover:text-primary transition-colors">Contact</a>
-        <a href="/contact" class="text-on-surface-variant hover:text-primary transition-colors">Support</a>
+        <a href="/contact" class="text-body-md text-on-surface-variant hover:text-primary transition-colors px-2 py-2">Contact</a>
+        <a href="/admin" class="text-body-md text-on-surface-variant hover:text-primary transition-colors px-2 py-2">Support</a>
         <% } %>
     </div>
 </nav>
