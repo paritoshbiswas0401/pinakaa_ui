@@ -70,7 +70,7 @@
                     },
                     "spacing": {
                         "base": "8px",
-                        "container-max": "1200px",
+                        "container-max": "1400px",
                         "margin-sm": "16px",
                         "margin-md": "32px",
                         "margin-lg": "64px",
@@ -168,9 +168,9 @@
     <img src="/assets/nsm_logo.png" alt="NSM Logo" class="h-14 w-auto object-contain" style="height: 70px;"/>
 </a>
 </div>
-<div class="flex items-center gap-margin-md" style="background-color: black;">
+<div class="flex items-center gap-margin-md">
 <a class="flex items-center hover:opacity-80 transition-opacity" style="text-decoration: none;">
-    <img src="/assets/cdac_logo.png" alt="C-DAC Logo" class="h-14 w-auto object-contain" style="background-color: black;"/>
+    <img src="/assets/cdac_logo_blue.png" alt="C-DAC Logo" class="h-14 w-auto object-contain"/>
 </a>
 </div>
 
@@ -208,25 +208,26 @@
     <div class="bg-surface-container-lowest border border-surface-variant rounded-lg overflow-hidden shadow-sm">
         <% if (!personalized) { %>
         <div class="px-4 py-4 border-b border-surface-variant">
-            <h2 class="font-headline-md text-headline-md text-on-surface mb-2">All available containers</h2>
-            <p class="font-body-sm text-body-sm text-on-surface-variant">This list is currently hardcoded and will be fetched from the remote repository later.</p>
+            <h2 class="font-headline-md text-headline-md text-on-surface mb-2"><%= headerLabel %></h2>
         </div>
         <% } %>
         <div class="grid grid-cols-12 gap-4 px-4 py-4 border-b border-surface-variant text-on-surface-variant font-label-caps text-label-caps uppercase tracking-[0.08em]">
-            <div class="col-span-10">Container</div>
-            <div class="col-span-2 text-right">Action</div>
+            <div class="col-span-11">Container</div>
+            <div class="col-span-1 text-right">Action</div>
         </div>
         <% containers.forEach(function(container, index) { %>
             <div class="grid grid-cols-12 gap-4 px-4 py-3 hover:bg-surface-container transition-colors">
-                <div class="col-span-10">
+                <div class="col-span-11">
                     <div class="flex flex-col gap-2">
                         <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                             <div>
                                 <div class="font-headline-md text-headline-md text-on-surface"><%= container.title %></div>
                                 <div class="mt-2 flex flex-wrap gap-2">
+                                    <% if (container.version) { %>
+                                    <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm">Version: <%= container.version %></span>
+                                    <% } %>
                                     <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.arch %></span>
                                     <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.access %></span>
-                                    <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.purpose %></span>
                                 </div>
                             </div>
                             <button type="button" onclick="toggleDescription('desc-<%= index %>', this)" class="inline-flex items-center gap-2 text-primary font-semibold">
@@ -235,11 +236,12 @@
                             </button>
                         </div>
                         <div id="desc-<%= index %>" class="toggle-panel rounded-lg border border-surface-variant bg-surface-container-lowest p-4 text-body-sm text-on-surface-variant">
-                            <%= container.description %>
+                            <div><%= container.description %></div>
+                            <div class="mt-3 text-xs text-on-surface-variant">Filename: <strong><%= container.filename %></strong></div>
                         </div>
                     </div>
                 </div>
-                <div class="col-span-2 flex items-start justify-end text-right">
+                <div class="col-span-1 flex items-start justify-end text-right">
                     <button onclick="triggerDownload('<%= container.filename %>')" class="inline-flex items-center justify-center bg-primary hover:bg-primary-container text-on-primary text-body-sm font-semibold px-4 py-2 rounded transition-colors">
                         <span class="material-symbols-outlined text-[18px] mr-2">download</span>
                         Get
@@ -257,32 +259,20 @@
 </div>
 </div>
 </main>
-<!-- Footer Component -->
 <footer class="bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant dark:border-outline mt-auto w-full py-margin-md px-margin-md flex flex-col md:flex-row justify-between items-center gap-base mx-auto">
-<div class="font-headline-sm text-headline-sm font-semibold text-on-surface dark:text-inverse-on-surface text-center md:text-left">
-            © 2026 System Software Development Group, NSM-STF, C-DAC, Bengaluru. All rights reserved.
-        </div>
-<div class="flex flex-wrap justify-center gap-margin-sm">
-<a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Terms of Service</a>
-<a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Privacy Policy</a>
-<a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Security Audit</a>
-<a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">API Reference</a>
-<a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Status</a>
-</div>
+    <div class="font-headline-sm text-headline-sm font-semibold text-on-surface dark:text-inverse-on-surface text-center md:text-left">
+        © 2026 System Software Development Group, NSM-STF, C-DAC, Bengaluru. All rights reserved.
+    </div>
+    <div class="flex flex-wrap justify-center gap-margin-sm">
+        <a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Terms of Service</a>
+        <a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Privacy Policy</a>
+        <a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Security Audit</a>
+        <a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">API Reference</a>
+        <a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Status</a>
+    </div>
 </footer>
 
 <script>
-function triggerDownload(filename) {
-    const role = '<%= role || '' %>';
-    if (role === 'Product Owner') {
-        return alert('Product Owner accounts are not permitted to download containers. Deployment Team role is required.');
-    }
-    fetch('/api/increment-download', { method: 'POST' })
-    .then(response => {
-        alert(`Download initiated for ${filename}. Database count updated.`);
-    });
-}
-
 function toggleDescription(id, button) {
     const panel = document.getElementById(id);
     if (!panel) return;
@@ -292,6 +282,11 @@ function toggleDescription(id, button) {
         icon.textContent = opened ? 'expand_less' : 'expand_more';
     }
     button.setAttribute('aria-expanded', String(opened));
+}
+
+function triggerDownload(filename) {
+    if (!filename) return;
+    window.location.href = '/download/file/' + encodeURIComponent(filename);
 }
 </script>
 

@@ -188,88 +188,121 @@ app.post('/admin/user/delete', (req, res) => {
     });
 });
 
-const allContainers = [
-    {
-        title: 'TensorFlow HPC Optimization',
-        description: 'Highly optimized TensorFlow container compiled specifically for NVIDIA A100 architectures. Includes cuDNN, NCCL, and MPI optimizations for distributed training across cluster nodes.',
-        access: 'GPU-Optimized',
-        arch: 'x86_64',
-        purpose: 'AI Research',
-        downloads: '14.2k',
-        size: '4.8 GB',
-        estimate: '~2 mins @ 1Gbps',
-        filename: 'tensorflow-hpc.sif',
-        stable: true
-    },
-    {
-        title: 'AMD OpenCL Compute Runtime',
-        description: 'Container image for AMD developers with OpenCL tooling, optimized for x86_64 platforms and targeted compute workloads.',
-        access: 'AMD Based',
-        arch: 'x86_64',
-        purpose: 'AMD Developer',
-        downloads: '9.1k',
-        size: '3.2 GB',
-        estimate: '~90 seconds @ 1Gbps',
-        filename: 'amd-opencl.sif',
-        stable: true
-    },
-    {
-        title: 'Bioinformatics x86 Toolkit',
-        description: 'Curated bioinformatics environment for x86_64 clusters with preloaded genomics tools, MPI, and large dataset support.',
-        access: 'CPU-Only',
-        arch: 'x86_64',
-        purpose: 'Bioinformatics',
-        downloads: '6.8k',
-        size: '5.1 GB',
-        estimate: '~2.5 mins @ 1Gbps',
-        filename: 'bioinfokit.sif',
-        stable: false
-    },
-    {
-        title: 'Intel HPC Platform',
-        description: 'Optimized Intel-based HPC runtime for x86_64 compute nodes with CPU-only performance tuning and MPI acceleration.',
-        access: 'Intel Based',
-        arch: 'x86_64',
-        purpose: 'AI Research',
-        downloads: '5.7k',
-        size: '3.9 GB',
-        estimate: '~2 mins @ 1Gbps',
-        filename: 'intel-hpc.sif',
-        stable: true
-    },
-    {
-        title: 'Edge HPC Container',
-        description: 'Lightweight runtime for edge and embedded HPC workloads on ARM-based hardware with accelerated inference and data streaming support.',
-        access: 'For Single Server',
-        arch: 'arm64',
-        purpose: 'Edge Computing',
-        downloads: '4.3k',
-        size: '2.7 GB',
-        estimate: '~70 seconds @ 1Gbps',
-        filename: 'edge-hpc.sif',
-        stable: true
-    }
-];
+// --- Remote container fetch via SSH ---
+const { Client } = require('ssh2');
+
+const sshConfig = {
+    host: '10.180.192.122',
+    port: parseInt(process.env.REMOTE_PORT, 10) || 22,
+    username: 'development',
+    password: 'deveop@@123',
+    remotePath: '/home/development/pinakaa_cpu_containers'
+};
+
+function humanSize(bytes) {
+    if (!bytes) return '0 B';
+    const units = ['B','KB','MB','GB','TB'];
+    let i = 0;
+    let n = Number(bytes);
+    while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+    return `${n.toFixed(n < 10 ? 2 : 1)} ${units[i]}`;
+}
+
+function fetchRemoteContainers() {
+    const conn = new Client();
+    const host = sshConfig.host;
+    const port = sshConfig.port;
+    const username = sshConfig.username;
+    const password = sshConfig.password;
+    const remotePath = sshConfig.remotePath;
+
+    return new Promise((resolve, reject) => {
+        const results = [];
+        let stdout = '';
+        conn.on('ready', () => {
+            // Use a robust shell command to output filename|size
+            const cmd = `for f in ${remotePath}/*.sif; do if [ -f \"$f\" ]; then echo "$(basename \"$f\")|$(stat -c %s \"$f\")"; fi; done`;
+            conn.exec(cmd, (err, stream) => {
+                if (err) { conn.end(); return reject(err); }
+                stream.on('data', (data) => { stdout += data.toString(); });
+                stream.stderr.on('data', (data) => { /* ignore stderr */ });
+                stream.on('close', () => {
+                    conn.end();
+                    const lines = stdout.split(/\r?\n/).filter(Boolean);
+                    for (const line of lines) {
+                        const parts = line.split('|');
+                        if (parts.length >= 2) {
+                            const filename = parts[0].trim();
+                            const size = parseInt(parts[1], 10) || 0;
+                            const baseName = filename.replace(/\.sif$/i, '');
+                            const chunks = baseName.split('-');
+                            const version = chunks.length > 1 ? chunks[chunks.length - 1] : '';
+                            const type = chunks.length > 1 ? chunks[1] : '';
+                            const vendorArch = chunks.length > 2 ? chunks[2] : '';
+                            results.push({
+                                filename,
+                                title: baseName,
+                                description: `Remote container ${filename}`,
+                                access: type || 'CPU/GPU',
+                                arch: vendorArch || 'unknown',
+                                purpose: 'Remote',
+                                downloads: '-',
+                                estimate: '-',
+                                size: humanSize(size),
+                                version,
+                                remote: true
+                            });
+                        }
+                    }
+                    resolve(results);
+                });
+            });
+        }).on('error', (e) => reject(e)).connect({ host, port, username, password, readyTimeout: 10000 });
+    });
+}
 
 // 4. Download Centre
-app.get('/download', (req, res) => {
-    let containers = allContainers;
+app.get('/download', async (req, res) => {
+    let containers = [];
     let personalized = false;
     let warningMessage = null;
 
     if (req.session.role === 'Product Owner') {
-        containers = [];
         warningMessage = 'Product Owner role cannot download containers. Deployment Team role is required to access container downloads.';
-    } else if (req.session.userId && (req.session.role === 'user' || req.session.role === 'Deployment team')) {
-        personalized = true;
-        const purpose = (req.session.purpose || '').toLowerCase();
-        const arch = (req.session.targetDevice || '').toLowerCase();
-        const accessPref = (req.session.access || '').toLowerCase();
+    }
 
-        containers = allContainers.filter((container) => {
-            const purposeMatch = container.purpose.toLowerCase().includes(purpose) || purpose.includes(container.purpose.toLowerCase());
-            const archMatch = container.arch.toLowerCase() === arch || arch.includes(container.arch.toLowerCase()) || (container.arch === 'x86_64' && arch.includes('x86'));
-            const accessMatch = !accessPref || accessPref === 'all' || container.access.toLowerCase().includes(accessPref) || accessPref.includes(container.access.toLowerCase());
+    try {
+        const remote = await fetchRemoteContainers();
+        containers = (remote || []).map((container) => ({
+            ...container,
+            access: container.access || 'CPU/GPU',
+            purpose: container.purpose || 'Remote',
+            downloads: container.downloads || '-',
+            estimate: container.estimate || '-',
+            size: container.size || '-',
+        }));
+    } catch (err) {
+        console.error('Remote container fetch failed:', err && err.message ? err.message : err);
+    }
+
+    if (req.session.userId && (req.session.role === 'user' || req.session.role === 'Deployment team')) {
+        personalized = true;
+        const purposePref = String(req.session.purpose || '').toLowerCase();
+        const archPref = String(req.session.targetDevice || '').toLowerCase();
+        const accessPrefRaw = String(req.session.access || '');
+
+        const normalize = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+        const accessPref = normalize(accessPrefRaw);
+
+        containers = containers.filter((container) => {
+            const purpose = normalize(container.purpose);
+            const arch = normalize(container.arch);
+            const access = normalize(container.access);
+
+            const purposeMatch = !purposePref || purpose.includes(String(purposePref)) || String(purposePref).includes(purpose);
+            const archMatch = !archPref || arch === String(archPref) || String(archPref).includes(arch) || (arch === 'x8664' && String(archPref).includes('x86'));
+            const accessMatch = !accessPref || accessPref === 'all' || access.includes(accessPref) || accessPref.includes(access);
+
             return purposeMatch && archMatch && accessMatch;
         });
     }
@@ -279,8 +312,61 @@ app.get('/download', (req, res) => {
         containers,
         personalized,
         warningMessage,
-        headerLabel: personalized ? `Containers tailored for ${req.session.username}` : 'All available containers',
+        headerLabel: personalized ? `Containers tailored for ${req.session.username}` : 'All Available Containers:',
         ...baseViewModel(req)
+    });
+});
+
+app.get('/download/file/:filename', (req, res) => {
+    if (!req.session.userId) return res.status(403).send('Unauthorized');
+
+    const filename = req.params.filename;
+    if (!filename || !/^[a-zA-Z0-9._-]+\.sif$/i.test(filename)) {
+        return res.status(400).send('Invalid file requested.');
+    }
+
+    const remoteFile = path.posix.join(sshConfig.remotePath, filename);
+    const conn = new Client();
+
+    conn.on('ready', () => {
+        conn.sftp((err, sftp) => {
+            if (err) {
+                conn.end();
+                return res.status(500).send('Unable to open SFTP connection.');
+            }
+
+            sftp.stat(remoteFile, (statErr, stats) => {
+                if (statErr) {
+                    conn.end();
+                    return res.status(404).send('File not found.');
+                }
+
+                res.setHeader('Content-Type', 'application/octet-stream');
+                res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+                res.setHeader('Content-Length', stats.size);
+
+                const readStream = sftp.createReadStream(remoteFile);
+                readStream.on('error', (streamErr) => {
+                    conn.end();
+                    if (!res.headersSent) {
+                        res.status(500).send('Error streaming the file.');
+                    }
+                });
+                readStream.on('end', () => {
+                    conn.end();
+                });
+                readStream.pipe(res);
+            });
+        });
+    }).on('error', (e) => {
+        console.error('Download stream error:', e);
+        res.status(500).send('SSH connection error.');
+    }).connect({
+        host: sshConfig.host,
+        port: sshConfig.port,
+        username: sshConfig.username,
+        password: sshConfig.password,
+        readyTimeout: 10000
     });
 });
 

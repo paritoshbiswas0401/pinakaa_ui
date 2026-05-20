@@ -132,7 +132,8 @@
 <a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/download">Containers</a>
 <% } %>
 <a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/documentation">Documentation</a>
-<a class="text-body-md text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary font-bold pb-1 h-full flex items-center" href="/contact">Contact</a>
+<!-- <a class="text-body-md text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary font-bold pb-1 h-full flex items-center" href="/contact">Contact</a> -->
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/contact">Contact</a>
 <% } %>
 </div>
 </div>
@@ -164,9 +165,9 @@
     <img src="/assets/nsm_logo.png" alt="NSM Logo" class="h-14 w-auto object-contain" style="height: 70px;"/>
 </a>
 </div>
-<div class="flex items-center gap-margin-md" style="background-color: black;">
+<div class="flex items-center gap-margin-md">
 <a class="flex items-center hover:opacity-80 transition-opacity" style="text-decoration: none;">
-    <img src="/assets/cdac_logo.png" alt="C-DAC Logo" class="h-14 w-auto object-contain" style="background-color: black;"/>
+    <img src="/assets/cdac_logo_blue.png" alt="C-DAC Logo" class="h-14 w-auto object-contain"/>
 </a>
 </div>
 
@@ -174,22 +175,21 @@
 </div>
 </nav>
 <!-- Main Content Canvas -->
-<main class="max-w-container-max mx-auto px-margin-md py-margin-lg flex flex-col gap-margin-lg">
+<main class="w-full mx-auto px-margin-md py-margin-lg flex flex-col gap-margin-lg">
 <!-- Hero Section (Bento/Asymmetric Layout) -->
 <section class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center min-h-[614px]">
 <!-- Left Content: Typography & CTA -->
-<div class="md:col-span-5 flex flex-col gap-margin-sm relative">
+<div class="md:col-span-4 flex flex-col gap-margin-sm relative">
 <!-- Abstract Technical Image Area -->
 <div class="w-full min-h-[420px] md:min-h-[520px] bg-surface-container-low border border-outline-variant rounded-lg overflow-hidden relative shadow-ambient">
 <!-- Using a placeholder image with the mandated highly detailed prompt in data-alt -->
-<img alt="Technical Background" class="object-contain w-full h-full opacity-90 mix-blend-multiply"
-     data-alt="PINAAKA STACK IMAGE"
-     src="/assets/pinakaa_stack.png" style="height: 500px; width: 600px; object-fit: fill; background-color: #FFF8F2;"/>
-<!-- Overlay Gradient to blend with background -->
-<div class="absolute inset-0 bg-gradient-to-tr from-surface-container-low via-transparent to-surface/20"></div>
+<img alt="Pinakaa stack" class="object-cover w-full h-full"
+    data-alt="PINAKAA STACK IMAGE"
+    src="/assets/pinakaa_stack.jpg"
+    style="height: 500px; width: 600px; object-fit: fill; background-color: #FFF8F2;"/>
 </div>
 <!-- Prominent 'Total Downloads' Badge anchored to the visual -->
-<div class="absolute -bottom-6 -left-6 bg-surface-container-lowest border border-outline-variant rounded p-margin-sm shadow-ambient flex flex-col gap-1 z-20">
+<div class="absolute -bottom-6 -left-4 bg-surface-container-lowest border border-outline-variant rounded p-margin-sm shadow-ambient flex flex-col gap-1 z-20">
 <span class="font-label-caps text-label-caps text-secondary flex items-center gap-1">
 <span class="material-symbols-outlined text-[16px]">bar_chart</span>
                         Total Downloads
@@ -200,14 +200,14 @@
 </div>
 </div>
 <!-- Right Content: Technical Visual & Stats Anchor -->
-<div class="md:col-span-7 flex flex-col items-start gap-margin-md z-10">
+<div class="md:col-span-8 flex flex-col items-start gap-margin-md z-10 pr-4 md:pr-12">
 <div class="flex flex-col gap-base">
 <div class="inline-flex items-center gap-2 bg-surface-container-low border border-outline-variant px-3 py-1 rounded text-secondary font-label-caps text-label-caps">
 <span class="material-symbols-outlined text-sm">verified</span>
                         STABLE BUILD v1.0.0
                     </div>
 <h1 class="font-headline-xl text-headline-xl text-on-surface">PINAKAA Studio</h1>
-<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mt-base">
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-base">
                         A comprehensive HPC software suite for scalable, sustainable and performance-driven computing. It is designed to provide end-to-end support for deploying and managing Rudra III–based HPC-AI servers and Supercomputers. PINAKAA is
 an Exascale-ready modular suite that empowers next-generation HPC and AI workloads on India’s indigenous Rudra III
 platforms. </p>
