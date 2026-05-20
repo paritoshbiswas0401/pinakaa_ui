@@ -115,51 +115,91 @@
     </style>
 </head>
 <body class="bg-background text-on-background antialiased pt-[80px]"> <!-- Padding top to account for fixed navbar -->
-<!-- TopNavBar (Generated from JSON) -->
-<header class="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest border-b border-outline-variant shadow-sm h-16">
-<div class="flex items-center justify-between px-margin-md h-full max-w-container-max mx-auto">
-<!-- Brand: replace text with clickable logo -->
-<a href="/" class="flex items-center gap-margin-sm hover:opacity-80 transition-opacity" style="text-decoration: none;">
+<!-- TopNavBar Component -->
+<nav class="bg-surface-container-lowest dark:bg-inverse-surface shadow-sm dark:shadow-none fixed top-0 left-0 w-full z-50 flex items-center justify-between px-margin-md h-20 mx-auto">
+<div class="flex items-center gap-margin-md">
+<a href="/" class="flex items-center hover:opacity-80 transition-opacity" style="text-decoration: none;">
     <img src="/assets/pinakaa_logo.jpg" alt="Pinakaa Logo" class="h-14 w-auto object-contain"/>
 </a>
-<!-- Navigation Links (Hidden on mobile for strict structural adherence, assumes a hamburger would exist normally but sticking to JSON) -->
-<nav class="hidden md:flex items-center gap-margin-md">
+<div class="hidden md:flex items-center gap-margin-sm h-full">
 <% if (role === 'admin') { %>
-<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/download">Containers</a>
-<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/documentation">Documentation</a>
-<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/contact" title="Request container access: Name, Email, Purpose, Target Device/Architecture, Organization">Contact</a>
-<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/admin">Support</a>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/download">Containers</a>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/documentation">Documentation</a>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/contact">Contact</a>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/admin">Support</a>
 <% } else { %>
 <% if (role !== 'Product Owner') { %>
-<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/download">Containers</a>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/download">Containers</a>
 <% } %>
-<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/documentation">Documentation</a>
-<a class="text-body-md text-on-surface-variant px-3 py-2 hover:text-primary-container transition-colors duration-200" href="/contact" title="Request container access: Name, Email, Purpose, Target Device/Architecture, Organization">Contact</a>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/documentation">Documentation</a>
+<a class="text-body-md text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary font-bold pb-1 h-full flex items-center" href="/contact">Contact</a>
 <% } %>
-</nav>
-<!-- Trailing Actions -->
+</div>
+</div>
 <div class="flex items-center gap-margin-sm">
-<button class="text-on-surface-variant hover:text-primary-container transition-colors duration-200 p-2 flex items-center justify-center mr-2" title="<%= username ? username : 'Guest' %>">
+<!-- Search Bar placeholder for "on_right" -->
+<div class="hidden lg:flex items-center bg-surface-container border border-outline-variant rounded px-3 py-1.5 focus-within:border-primary transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-size: 18px;">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-sm font-body-sm p-0 w-48 placeholder-on-surface-variant" placeholder="Search..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<button class="text-on-surface-variant hover:text-primary transition-colors mr-2" title="<%= username ? username : 'Guest' %>">
 <span class="material-symbols-outlined">account_circle</span>
 </button>
 <% if (username) { %>
-<a class="text-primary hover:text-primary-container transition-colors font-body-sm font-semibold" href="/change-password">Change Password</a>
-<a class="bg-primary text-on-primary font-label-caps text-label-caps px-4 py-2 rounded shadow-sm hover:bg-primary-container transition-colors flex items-center gap-2" href="/logout" style="text-decoration: none;">
+<a class="bg-white text-primary border border-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container hover:text-on-primary transition-colors ml-2 hidden sm:block" href="/change-password" style="text-decoration: none;">
+                    Change Password
+                </a>
+<a class="bg-primary text-on-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container transition-colors ml-2 hidden sm:block" href="/logout" style="text-decoration: none;">
                     Logout
                 </a>
 <% } else { %>
-<a class="bg-primary text-on-primary font-label-caps text-label-caps px-4 py-2 rounded shadow-sm hover:bg-primary-container transition-colors flex items-center gap-2" href="/login" style="text-decoration: none;">
-                    Sign In
+<a class="bg-primary text-on-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container transition-colors ml-2 hidden sm:block" href="/login" style="text-decoration: none;">
+                    Login
                 </a>
 <% } %>
+
+<div class="flex items-center gap-margin-md">
+<a class="flex items-center hover:opacity-80 transition-opacity" style="text-decoration: none;">
+    <img src="/assets/nsm_logo.png" alt="NSM Logo" class="h-14 w-auto object-contain" style="height: 70px;"/>
+</a>
+</div>
+<div class="flex items-center gap-margin-md" style="background-color: black;">
+<a class="flex items-center hover:opacity-80 transition-opacity" style="text-decoration: none;">
+    <img src="/assets/cdac_logo.png" alt="C-DAC Logo" class="h-14 w-auto object-contain" style="background-color: black;"/>
+</a>
+</div>
+
 </div>
 </div>
-</header>
+</nav>
 <!-- Main Content Canvas -->
 <main class="max-w-container-max mx-auto px-margin-md py-margin-lg flex flex-col gap-margin-lg">
 <!-- Hero Section (Bento/Asymmetric Layout) -->
 <section class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center min-h-[614px]">
 <!-- Left Content: Typography & CTA -->
+<div class="md:col-span-5 flex flex-col gap-margin-sm relative">
+<!-- Abstract Technical Image Area -->
+<div class="w-full min-h-[420px] md:min-h-[520px] bg-surface-container-low border border-outline-variant rounded-lg overflow-hidden relative shadow-ambient">
+<!-- Using a placeholder image with the mandated highly detailed prompt in data-alt -->
+<img alt="Technical Background" class="object-contain w-full h-full opacity-90 mix-blend-multiply"
+     data-alt="PINAAKA STACK IMAGE"
+     src="/assets/pinakaa_stack.png" style="height: 500px; width: 600px; object-fit: fill; background-color: #FFF8F2;"/>
+<!-- Overlay Gradient to blend with background -->
+<div class="absolute inset-0 bg-gradient-to-tr from-surface-container-low via-transparent to-surface/20"></div>
+</div>
+<!-- Prominent 'Total Downloads' Badge anchored to the visual -->
+<div class="absolute -bottom-6 -left-6 bg-surface-container-lowest border border-outline-variant rounded p-margin-sm shadow-ambient flex flex-col gap-1 z-20">
+<span class="font-label-caps text-label-caps text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">bar_chart</span>
+                        Total Downloads
+                    </span>
+<span class="font-technical-md text-technical-md text-on-surface text-3xl">
+                        <%= downloads %><span class="text-primary animate-pulse">_</span>
+</span>
+</div>
+</div>
+<!-- Right Content: Technical Visual & Stats Anchor -->
 <div class="md:col-span-7 flex flex-col items-start gap-margin-md z-10">
 <div class="flex flex-col gap-base">
 <div class="inline-flex items-center gap-2 bg-surface-container-low border border-outline-variant px-3 py-1 rounded text-secondary font-label-caps text-label-caps">
@@ -193,31 +233,7 @@ platforms. </p>
 </div>
 </div>
 </div>
-<!-- Right Content: Technical Visual & Stats Anchor -->
-<div class="md:col-span-5 flex flex-col gap-margin-sm relative">
-<!-- Abstract Technical Image Area -->
-<div class="w-full min-h-[420px] md:min-h-[520px] bg-surface-container-low border border-outline-variant rounded-lg overflow-hidden relative shadow-ambient">
-<!-- Using a placeholder image with the mandated highly detailed prompt in data-alt -->
-<img alt="Technical Background" class="object-contain w-full h-full opacity-90 mix-blend-multiply"
-     data-alt="A highly detailed, macro photograph of a complex server motherboard bathed in cool, sterile white and blue studio lighting.
-               The image focuses on the precise geometry of microchips, metallic heat sinks, and golden connection pins, conveying a sense of high-performance computing and technological robustness.
-               The depth of field is shallow, blurring the background into a soft, abstract gradient of grays and subtle primary blues that perfectly matches a modern, light-mode technical interface.
-               The overall aesthetic is clean, minimalist, and deeply corporate, emphasizing structural integrity and raw computational power without unnecessary clutter."
-               src="/assets/Pinakaa_stack.jpeg" style="height: 500px; width: 600px; object-fit: fill;"/>
-<!-- Overlay Gradient to blend with background -->
-<div class="absolute inset-0 bg-gradient-to-tr from-surface-container-low via-transparent to-surface/20"></div>
-</div>
-<!-- Prominent 'Total Downloads' Badge anchored to the visual -->
-<div class="absolute -bottom-6 -left-6 bg-surface-container-lowest border border-outline-variant rounded p-margin-sm shadow-ambient flex flex-col gap-1 z-20">
-<span class="font-label-caps text-label-caps text-secondary flex items-center gap-1">
-<span class="material-symbols-outlined text-[16px]">bar_chart</span>
-                        Total Downloads
-                    </span>
-<span class="font-technical-md text-technical-md text-on-surface text-3xl">
-                        <%= downloads %><span class="text-primary animate-pulse">_</span>
-</span>
-</div>
-</div>
+
 </section>
 <hr class="border-outline-variant/50 w-full"/>
 <!-- Features Section (Technical Grid) -->
@@ -262,10 +278,10 @@ platforms. </p>
 </main>
 <!-- Footer (Generated from JSON) -->
 <footer class="w-full bg-surface-container-low border-t border-outline-variant mt-auto">
-<div class="w-full py-margin-md px-margin-md flex flex-col md:flex-row justify-between items-center gap-base max-w-container-max mx-auto">
+<div class="w-full py-margin-md px-margin-md flex flex-col md:flex-row justify-between items-center gap-base mx-auto">
 <div class="flex flex-col gap-2 items-center md:items-start text-center md:text-left">
 <!-- Fallback to JSON standard structure for Brand Logo if needed, though mostly standard copyright -->
-<p class="font-body-sm text-body-sm text-secondary">© 2026 System Software Development Group, C-DAC, Bengaluru. All rights reserved</p>
+<p class="font-body-sm text-body-sm text-secondary">© 2026 System Software Development Group, NSM-STF, C-DAC, Bengaluru. All rights reserved</p>
 </div>
 <nav class="flex flex-wrap justify-center gap-margin-sm">
 <a class="font-technical-sm text-technical-sm text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Terms of Service</a>

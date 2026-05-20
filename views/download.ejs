@@ -106,6 +106,16 @@
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
+        .toggle-panel {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+        }
+        .toggle-panel.open {
+            max-height: 500px;
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-[80px]">
@@ -152,18 +162,28 @@
                     Login
                 </a>
 <% } %>
+
+<div class="flex items-center gap-margin-md">
+<a class="flex items-center hover:opacity-80 transition-opacity" style="text-decoration: none;">
+    <img src="/assets/nsm_logo.png" alt="NSM Logo" class="h-14 w-auto object-contain" style="height: 70px;"/>
+</a>
+</div>
+<div class="flex items-center gap-margin-md" style="background-color: black;">
+<a class="flex items-center hover:opacity-80 transition-opacity" style="text-decoration: none;">
+    <img src="/assets/cdac_logo.png" alt="C-DAC Logo" class="h-14 w-auto object-contain" style="background-color: black;"/>
+</a>
+</div>
+
 </div>
 </div>
 </nav>
 <!-- Main Content -->
 <main class="flex-grow w-full max-w-container-max mx-auto px-4 md:px-margin-md py-margin-md">
 <!-- Status Header -->
-<div class="mb-margin-md flex items-start justify-between">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-green-600 bg-green-100 p-2 rounded-full" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+ <div class="flex items-center gap-3">
+<!-- <span class="material-symbols-outlined text-green-600 bg-green-100 p-2 rounded-full" style="font-variation-settings: 'FILL' 1;">verified_user</span> -->
 <div>
-<h1 class="font-headline-lg text-headline-lg text-on-background"><%= headerLabel %></h1>
-<p class="font-body-sm text-body-sm text-on-surface-variant"><%= personalized ? 'Showing containers filtered by your purpose and architecture.' : 'Browse all available containers. This list is currently hardcoded and will be fetched from the remote repository later.' %></p>
+<!-- <h1 class="font-headline-lg text-headline-lg text-on-background"><%= headerLabel %></h1> -->
 <% if (personalized) { %>
 <div class="mt-2 inline-flex items-center gap-2 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-technical-sm">
 <span class="material-symbols-outlined" style="font-size: 16px;">badge</span>
@@ -172,6 +192,7 @@
 <% } %>
 </div>
 </div>
+<div class="mb-margin-md flex items-start justify-between">
 <% if (warningMessage) { %>
 <div class="mb-6 rounded-xl border border-error-container bg-error-container/10 p-4 text-error">
     <h2 class="font-headline-md text-headline-md mb-2">Access Restricted</h2>
@@ -181,33 +202,44 @@
 <!-- Dashboard Layout Grid -->
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
 <!-- Left Column: Primary Download Area -->
-<div class="lg:col-span-8 flex flex-col gap-gutter">
+<div class="lg:col-span-12 flex flex-col gap-gutter">
 
 <% if (containers.length > 0) { %>
     <div class="bg-surface-container-lowest border border-surface-variant rounded-lg overflow-hidden shadow-sm">
-        <div class="grid grid-cols-12 gap-4 px-4 py-4 border-b border-surface-variant text-on-surface-variant font-label-caps text-label-caps uppercase tracking-[0.08em]">
-            <div class="col-span-5">Container</div>
-            <div class="col-span-4 hidden md:block">Tags</div>
-            <div class="col-span-2 text-right hidden sm:block">Downloads</div>
-            <div class="col-span-1 text-right">Action</div>
+        <% if (!personalized) { %>
+        <div class="px-4 py-4 border-b border-surface-variant">
+            <h2 class="font-headline-md text-headline-md text-on-surface mb-2">All available containers</h2>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">This list is currently hardcoded and will be fetched from the remote repository later.</p>
         </div>
-        <% containers.forEach(function(container) { %>
-            <div class="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-surface-container transition-colors">
-                <div class="col-span-5">
-                    <div class="font-headline-md text-headline-md text-on-surface"><%= container.title %></div>
-                    <p class="font-body-sm text-body-sm text-on-surface-variant mt-1"><%= container.description %></p>
-                </div>
-                <div class="col-span-4 hidden md:block">
-                    <div class="flex flex-wrap gap-2">
-                        <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.arch %></span>
-                        <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.access %></span>
-                        <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.purpose %></span>
+        <% } %>
+        <div class="grid grid-cols-12 gap-4 px-4 py-4 border-b border-surface-variant text-on-surface-variant font-label-caps text-label-caps uppercase tracking-[0.08em]">
+            <div class="col-span-10">Container</div>
+            <div class="col-span-2 text-right">Action</div>
+        </div>
+        <% containers.forEach(function(container, index) { %>
+            <div class="grid grid-cols-12 gap-4 px-4 py-3 hover:bg-surface-container transition-colors">
+                <div class="col-span-10">
+                    <div class="flex flex-col gap-2">
+                        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                            <div>
+                                <div class="font-headline-md text-headline-md text-on-surface"><%= container.title %></div>
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.arch %></span>
+                                    <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.access %></span>
+                                    <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.purpose %></span>
+                                </div>
+                            </div>
+                            <button type="button" onclick="toggleDescription('desc-<%= index %>', this)" class="inline-flex items-center gap-2 text-primary font-semibold">
+                                <span class="material-symbols-outlined text-[18px]">expand_more</span>
+                                Description
+                            </button>
+                        </div>
+                        <div id="desc-<%= index %>" class="toggle-panel rounded-lg border border-surface-variant bg-surface-container-lowest p-4 text-body-sm text-on-surface-variant">
+                            <%= container.description %>
+                        </div>
                     </div>
                 </div>
-                <div class="col-span-2 flex items-center justify-end text-right hidden sm:flex">
-                    <span class="font-technical-md text-technical-md text-on-surface"><%= container.downloads %></span>
-                </div>
-                <div class="col-span-7 md:col-span-1 text-right">
+                <div class="col-span-2 flex items-start justify-end text-right">
                     <button onclick="triggerDownload('<%= container.filename %>')" class="inline-flex items-center justify-center bg-primary hover:bg-primary-container text-on-primary text-body-sm font-semibold px-4 py-2 rounded transition-colors">
                         <span class="material-symbols-outlined text-[18px] mr-2">download</span>
                         Get
@@ -223,50 +255,12 @@
     </div>
 <% } %>
 </div>
-<!-- Right Column: Technical Specs -->
-<div class="lg:col-span-4 flex flex-col gap-gutter">
-<div class="bg-surface-container-lowest border border-surface-variant rounded-lg p-margin-md shadow-[0_4px_20px_rgba(15,23,42,0.05)] h-full">
-<h3 class="font-headline-md text-headline-md text-on-surface mb-margin-sm flex items-center gap-2">
-<span class="material-symbols-outlined text-secondary">memory</span>
-                        Technical Specifications
-                    </h3>
-<div class="space-y-4">
-<div class="border-b border-surface-variant pb-3">
-<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">Version</div>
-<div class="font-technical-md text-technical-md text-on-surface">2.14.0-gpu-hpc</div>
-</div>
-<div class="border-b border-surface-variant pb-3">
-<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">Architecture</div>
-<div class="font-technical-md text-technical-md text-on-surface">x86_64</div>
-</div>
-<div class="border-b border-surface-variant pb-3">
-<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">Target Device Compatibility</div>
-<div class="font-technical-md text-technical-md text-on-surface">NVIDIA Ampere, Hopper</div>
-</div>
-<div class="border-b border-surface-variant pb-3">
-<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">Base OS</div>
-<div class="font-technical-md text-technical-md text-on-surface">Ubuntu 22.04 LTS</div>
-</div>
-<div class="pt-2">
-<div class="font-label-caps text-label-caps text-on-surface-variant mb-2">SHA-256 Checksum</div>
-<div class="bg-surface-container-high p-3 rounded border border-outline-variant relative group">
-<code class="font-technical-sm text-technical-sm text-on-surface break-all">
-                                    8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4
-                                </code>
-<button class="absolute top-2 right-2 text-on-surface-variant hover:text-primary hidden group-hover:block transition-colors" title="Copy Checksum">
-<span class="material-symbols-outlined" style="font-size: 16px;">content_copy</span>
-</button>
-</div>
-</div>
-</div>
-</div>
-</div>
 </div>
 </main>
 <!-- Footer Component -->
 <footer class="bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant dark:border-outline mt-auto w-full py-margin-md px-margin-md flex flex-col md:flex-row justify-between items-center gap-base mx-auto">
 <div class="font-headline-sm text-headline-sm font-semibold text-on-surface dark:text-inverse-on-surface text-center md:text-left">
-            © 2026 System Software Development Group, C-DAC, Bengaluru. All rights reserved.
+            © 2026 System Software Development Group, NSM-STF, C-DAC, Bengaluru. All rights reserved.
         </div>
 <div class="flex flex-wrap justify-center gap-margin-sm">
 <a class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Terms of Service</a>
@@ -287,6 +281,17 @@ function triggerDownload(filename) {
     .then(response => {
         alert(`Download initiated for ${filename}. Database count updated.`);
     });
+}
+
+function toggleDescription(id, button) {
+    const panel = document.getElementById(id);
+    if (!panel) return;
+    const opened = panel.classList.toggle('open');
+    const icon = button.querySelector('.material-symbols-outlined');
+    if (icon) {
+        icon.textContent = opened ? 'expand_less' : 'expand_more';
+    }
+    button.setAttribute('aria-expanded', String(opened));
 }
 </script>
 
