@@ -1,4 +1,5 @@
 // server.js
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
@@ -8,7 +9,8 @@ const db = require('./db');
 
 const app = express();
 const PORT = 3000;
-const requestRecipient = process.env.REQUEST_EMAIL || 'paritoshb@cdac.in';
+const requestRecipient = process.env.REQUEST_EMAIL || 'pinakaa@cdac.in';
+const emailFromAddress = process.env.EMAIL_FROM || 'PINAKAA Studio <pinakaa@cdac.in>';
 const defaultUserPassword = process.env.DEFAULT_USER_PASSWORD || 'Welcome123';
 
 const transportOptions = process.env.EMAIL_HOST ? {
@@ -146,24 +148,85 @@ app.post('/admin/request/:action', (req, res) => {
 
     const action = req.params.action;
     const validActions = ['approve', 'reject'];
-    const { id } = req.body;
+    const { id, rejection_reason: rejectionReasonRaw } = req.body;
+    const rejectionReason = (rejectionReasonRaw || '').trim();
 
     if (!validActions.includes(action) || !id) {
         return res.redirect('/admin?message=' + encodeURIComponent('Invalid request action or missing request id.'));
     }
 
-    const newStatus = action === 'approve' ? 'active' : 'rejected';
-    db.run("UPDATE users SET status = ? WHERE id = ? AND status = 'pending'", [newStatus, id], function(err) {
-        if (err) {
-            return res.redirect('/admin?message=' + encodeURIComponent('Unable to update request status.'));
-        }
-
-        if (this.changes === 0) {
+    // Fetch user details to get email and other info
+    db.get("SELECT * FROM users WHERE id = ? AND status = 'pending'", [id], (err, user) => {
+        if (err || !user) {
             return res.redirect('/admin?message=' + encodeURIComponent('Request not found or already processed.'));
         }
 
-        const message = action === 'approve' ? 'Request approved successfully.' : 'Request rejected successfully.';
-        return res.redirect('/admin?message=' + encodeURIComponent(message));
+        const newStatus = action === 'approve' ? 'active' : 'rejected';
+        const updateQuery = action === 'reject'
+            ? "UPDATE users SET status = ?, rejection_reason = ? WHERE id = ? AND status = 'pending'"
+            : "UPDATE users SET status = ? WHERE id = ? AND status = 'pending'";
+        const updateParams = action === 'reject'
+            ? [newStatus, rejectionReason || null, id]
+            : [newStatus, id];
+
+        db.run(updateQuery, updateParams, function(updateErr) {
+            if (updateErr) {
+                return res.redirect('/admin?message=' + encodeURIComponent('Unable to update request status.'));
+            }
+
+            if (this.changes === 0) {
+                return res.redirect('/admin?message=' + encodeURIComponent('Request not found or already processed.'));
+            }
+
+            // Send email to user about approval/rejection
+            let subject, textContent, htmlContent;
+            
+            if (action === 'approve') {
+                subject = 'Your PINAKAA Studio Login Request - Approved';
+                textContent = `Dear ${user.name},\n\nGood news! Your login request to PINAKAA Studio has been approved.\n\nYour login credentials are:\nUsername: ${user.username}\nPassword: ${defaultUserPassword}\n\nPlease change your password after your first login for security purposes.\n\nBest regards,\nPINAKAA Admin Team`;
+                htmlContent = `<p>Dear ${user.name},</p>
+                              <p>Good news! Your login request to PINAKAA Studio has been <strong>approved</strong>.</p>
+                              <p><strong>Your login credentials are:</strong></p>
+                              <ul>
+                                <li><strong>Username:</strong> ${user.username}</li>
+                                <li><strong>Password:</strong> ${defaultUserPassword}</li>
+                              </ul>
+                              <p style="color: #E84E1B; font-weight: bold;">Please change your password after your first login for security purposes.</p>
+                              <p>Best regards,<br/>PINAKAA Admin Team</p>`;
+            } else {
+                const reasonText = rejectionReason ? `Reason: ${rejectionReason}\n\n` : '';
+                const reasonHtml = rejectionReason ? `<p><strong>Reason:</strong> ${rejectionReason}</p>` : '';
+
+                subject = 'Your PINAKAA Studio Login Request - Rejected';
+                textContent = `Dear ${user.name},\n\nWe regret to inform you that your login request to PINAKAA Studio has been rejected.\n\n${reasonText}If you believe this is an error or have questions, please contact support at ${requestRecipient}.\n\nBest regards,\nPINAKAA Admin Team`;
+                htmlContent = `<p>Dear ${user.name},</p>
+                              <p>We regret to inform you that your login request to PINAKAA Studio has been <strong>rejected</strong>.</p>
+                              ${reasonHtml}
+                              <p>If you believe this is an error or have questions, please contact support at <a href="mailto:${requestRecipient}">${requestRecipient}</a>.</p>
+                              <p>Best regards,<br/>PINAKAA Admin Team</p>`;
+            }
+
+            const mailOptions = {
+                from: emailFromAddress,
+                to: user.email,
+                subject: subject,
+                text: textContent,
+                html: htmlContent
+            };
+
+            mailer.sendMail(mailOptions, (mailErr, info) => {
+                if (mailErr) {
+                    console.error('Mail send error:', mailErr);
+                    const message = action === 'approve' 
+                        ? 'Request approved, but email notification failed. Please contact user manually.'
+                        : 'Request rejected, but email notification failed. Please contact user manually.';
+                    return res.redirect('/admin?message=' + encodeURIComponent(message));
+                }
+
+                const successMessage = action === 'approve' ? 'Request approved and email sent to user.' : 'Request rejected and email sent to user.';
+                return res.redirect('/admin?message=' + encodeURIComponent(successMessage));
+            });
+        });
     });
 });
 
@@ -175,7 +238,7 @@ app.post('/admin/user/delete', (req, res) => {
         return res.redirect('/admin?message=' + encodeURIComponent('Missing user id.'));
     }
 
-    db.run("DELETE FROM users WHERE id = ? AND role = 'user'", [id], function(err) {
+    db.run("DELETE FROM users WHERE id = ? AND role != 'admin'", [id], function(err) {
         if (err) {
             return res.redirect('/admin?message=' + encodeURIComponent('Unable to delete the user.'));
         }
@@ -269,6 +332,14 @@ app.get('/download', async (req, res) => {
 
     if (req.session.role === 'Product Owner') {
         warningMessage = 'Product Owner role cannot download containers. Deployment Team role is required to access container downloads.';
+        return res.render('download', {
+            access: req.session.access,
+            containers: [],
+            personalized: false,
+            warningMessage,
+            headerLabel: 'All Available Containers:',
+            ...baseViewModel(req)
+        });
     }
 
     try {
@@ -408,8 +479,8 @@ app.get('/documentation', (req, res) => {
 });
 
 app.post('/contact', (req, res) => {
-    const { name, email, purpose, 'target-device': targetDevice, organization, role, 'container-access': containerAccess, product_name: productName, team_name: teamName, prerequisites } = req.body;
-    const formData = { name, email, purpose, targetDevice, organization, role, containerAccess, productName, teamName, prerequisites };
+    const { name, email, purpose, 'target-device': targetDevice, organization, role, 'container-access': containerAccess, product_name: productName, team_name: teamName } = req.body;
+    const formData = { name, email, purpose, targetDevice, organization, role, containerAccess, productName, teamName };
 
     if (!name || !email || !purpose || !targetDevice || !organization || !role) {
         return res.render('contact', {
@@ -419,9 +490,9 @@ app.post('/contact', (req, res) => {
         });
     }
 
-    if (role === 'Product Owner' && (!productName || !teamName || !prerequisites)) {
+    if (role === 'Product Owner' && (!productName || !teamName)) {
         return res.render('contact', {
-            error: 'Product Owner requests require Product name, Team name, and Prerequisites.',
+            error: 'Product Owner requests require Product name and Team name.',
             formData,
             ...baseViewModel(req)
         });
@@ -463,8 +534,8 @@ app.post('/contact', (req, res) => {
                 });
             } else if (existingUser.status === 'rejected') {
                 // Allow resubmission by updating the existing rejected request to pending
-                db.run(`UPDATE users SET name = ?, password = ?, purpose = ?, target_device = ?, role = ?, organization = ?, container_access = ?, product_name = ?, team_name = ?, prerequisites = ?, status = 'pending' WHERE id = ?`,
-                    [name, defaultUserPassword, purpose, targetDevice, role, organization, role === 'Deployment team' ? containerAccess : 'Login Request', productName || null, teamName || null, prerequisites || null, existingUser.id], function(updateErr) {
+                db.run(`UPDATE users SET name = ?, password = ?, purpose = ?, target_device = ?, role = ?, organization = ?, container_access = ?, product_name = ?, team_name = ?, status = 'pending' WHERE id = ?`,
+                    [name, defaultUserPassword, purpose, targetDevice, role, organization, role === 'Deployment team' ? containerAccess : 'Login Request', productName || null, teamName || null, existingUser.id], function(updateErr) {
                         if (updateErr) {
                             return res.render('contact', {
                                 error: 'Unable to update your request at this time. Please try again later.',
@@ -474,10 +545,10 @@ app.post('/contact', (req, res) => {
                         }
 
                         const mailOptions = {
-                            from: 'Singularity Hub <no-reply@singularity-hub.local>',
+                            from: emailFromAddress,
                             to: requestRecipient,
                             subject: `Updated login request from ${name}`,
-                            text: `Updated login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nPrerequisites: ${prerequisites || 'N/A'}\nContainer Access: ${containerAccess || 'N/A'}\nSubmitted At: ${now}`,
+                            text: `Updated login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nContainer Access: ${containerAccess || 'N/A'}\nSubmitted At: ${now}`,
                             html: `<p>An updated login request has been submitted with the following details:</p>
                                    <ul>
                                      <li><strong>Name:</strong> ${name}</li>
@@ -488,7 +559,6 @@ app.post('/contact', (req, res) => {
                                      <li><strong>Organization:</strong> ${organization}</li>
                                      <li><strong>Product Name:</strong> ${productName || 'N/A'}</li>
                                      <li><strong>Team Name:</strong> ${teamName || 'N/A'}</li>
-                                     <li><strong>Prerequisites:</strong> ${prerequisites || 'N/A'}</li>
                                      <li><strong>Container Access:</strong> ${containerAccess || 'N/A'}</li>
                                      <li><strong>Submitted At:</strong> ${now}</li>
                                    </ul>`
@@ -511,9 +581,9 @@ app.post('/contact', (req, res) => {
             }
         }
 
-        db.run(`INSERT INTO users (username, name, email, password, purpose, target_device, container_access, role, organization, product_name, team_name, prerequisites, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-            [username, name, email, defaultUserPassword, purpose, targetDevice, role === 'Deployment team' ? containerAccess : 'Login Request', role, organization, productName || null, teamName || null, prerequisites || null], function(insertErr) {
+        db.run(`INSERT INTO users (username, name, email, password, purpose, target_device, container_access, role, organization, product_name, team_name, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+            [username, name, email, defaultUserPassword, purpose, targetDevice, role === 'Deployment team' ? containerAccess : 'Login Request', role, organization, productName || null, teamName || null], function(insertErr) {
                 if (insertErr) {
                     return res.render('contact', {
                         error: 'Unable to save your request at this time. Please try again later.',
@@ -523,10 +593,10 @@ app.post('/contact', (req, res) => {
                 }
 
                 const mailOptions = {
-                    from: 'Singularity Hub <no-reply@singularity-hub.local>',
+                    from: emailFromAddress,
                     to: requestRecipient,
                     subject: `New login request from ${name}`,
-                    text: `New login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nPrerequisites: ${prerequisites || 'N/A'}\nContainer Access: ${containerAccess || 'N/A'}\nSubmitted At: ${now}`,
+                    text: `New login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nContainer Access: ${containerAccess || 'N/A'}\nSubmitted At: ${now}`,
                     html: `<p>A new login request has been submitted with the following details:</p>
                            <ul>
                              <li><strong>Name:</strong> ${name}</li>
@@ -537,7 +607,6 @@ app.post('/contact', (req, res) => {
                              <li><strong>Organization:</strong> ${organization}</li>
                              <li><strong>Product Name:</strong> ${productName || 'N/A'}</li>
                              <li><strong>Team Name:</strong> ${teamName || 'N/A'}</li>
-                             <li><strong>Prerequisites:</strong> ${prerequisites || 'N/A'}</li>
                              <li><strong>Container Access:</strong> ${containerAccess || 'N/A'}</li>
                              <li><strong>Submitted At:</strong> ${now}</li>
                            </ul>`

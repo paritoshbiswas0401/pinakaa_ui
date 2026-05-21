@@ -3,7 +3,7 @@
 <html class="light" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Container Download - Singularity Hub</title>
+<title>Container Download - PINAKAA Studio</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -204,7 +204,7 @@
 <!-- Left Column: Primary Download Area -->
 <div class="lg:col-span-12 flex flex-col gap-gutter">
 
-<% if (containers.length > 0) { %>
+<% if (!warningMessage && containers.length > 0) { %>
     <div class="bg-surface-container-lowest border border-surface-variant rounded-lg overflow-hidden shadow-sm">
         <% if (!personalized) { %>
         <div class="px-4 py-4 border-b border-surface-variant">
@@ -250,7 +250,7 @@
             </div>
         <% }); %>
     </div>
-<% } else { %>
+<% } else if (!warningMessage) { %>
     <div class="bg-surface-container-lowest border border-surface-variant rounded-lg p-margin-md text-center">
         <h2 class="font-headline-md text-headline-md text-on-surface mb-2">No matching containers found</h2>
         <p class="font-body-md text-body-md text-on-surface-variant">Your profile and architecture do not match any available images yet. Please request additional access or try again later.</p>
