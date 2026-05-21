@@ -5,6 +5,7 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const svgCaptcha = require('svg-captcha');
 const db = require('./db');
 
 const app = express();
@@ -51,6 +52,32 @@ const baseViewModel = (req) => ({
     role: req.session.role || null
 });
 
+function createLoginCaptcha(req) {
+    const captcha = svgCaptcha.create({
+        size: 5,
+        noise: 2,
+        ignoreChars: '0o1il',
+        color: true,
+        background: '#f8fafc'
+    });
+    req.session.captcha = captcha.text;
+    return captcha.data;
+}
+
+function sendMailInBackground(mailOptions, description) {
+    try {
+        mailer.sendMail(mailOptions, (mailErr, info) => {
+            if (mailErr) {
+                console.error('Background mail send error:', description, mailErr);
+                return;
+            }
+            console.log('Background mail sent:', description, info && (info.response || info.messageId));
+        });
+    } catch (err) {
+        console.error('Background mail send threw an error:', description, err);
+    }
+}
+
 // --- ROUTES ---
 
 // 1. Home Page
@@ -65,23 +92,33 @@ app.get('/login', (req, res) => {
     if (req.session.userId) {
         return res.redirect(req.session.role === 'admin' ? '/admin' : '/download');
     }
-    res.render('login', { error: null, ...baseViewModel(req) });
+    const captchaSvg = createLoginCaptcha(req);
+    res.render('login', { error: null, captcha: captchaSvg, ...baseViewModel(req) });
 });
 
 app.post('/login', (req, res) => {
     const username = (req.body.username || '').trim();
     const password = (req.body.password || '').trim();
     const captcha = (req.body.captcha || '').trim();
+    const storedCaptcha = (req.session.captcha || '').trim().toUpperCase();
 
     if (!username || !password || !captcha) {
-        return res.render('login', { error: 'Username, password, and captcha are required.' });
+        const captchaSvg = createLoginCaptcha(req);
+        return res.render('login', { error: 'Username, password, and captcha are required.', captcha: captchaSvg, ...baseViewModel(req) });
     }
 
-    if (captcha.toUpperCase() !== '8F2A') {
-        return res.render('login', { error: 'Invalid captcha code.' });
+    if (captcha.toUpperCase() !== storedCaptcha || !storedCaptcha) {
+        const captchaSvg = createLoginCaptcha(req);
+        return res.render('login', { error: 'Invalid captcha code.', captcha: captchaSvg, ...baseViewModel(req) });
     }
+
+    req.session.captcha = null;
 
     db.get("SELECT * FROM users WHERE (username = ? OR email = ?) AND password = ? AND status = 'active'", [username, username, password], (err, user) => {
+        if (err) {
+            const captchaSvg = createLoginCaptcha(req);
+            return res.render('login', { error: 'Internal error during login. Please try again.', captcha: captchaSvg, ...baseViewModel(req) });
+        }
         if (user) {
             req.session.userId = user.id;
             req.session.role = user.role;
@@ -91,13 +128,13 @@ app.post('/login', (req, res) => {
             req.session.targetDevice = user.target_device;
 
             if (user.role === 'admin') {
-                res.redirect('/admin');
-            } else {
-                res.redirect('/download');
+                return res.redirect('/admin');
             }
-        } else {
-            res.render('login', { error: 'Invalid credentials. Please check your username and password.', ...baseViewModel(req) });
+            return res.redirect('/download');
         }
+
+        const captchaSvg = createLoginCaptcha(req);
+        return res.render('login', { error: 'Invalid credentials. Please check your username and password.', captcha: captchaSvg, ...baseViewModel(req) });
     });
 });
 
@@ -214,18 +251,9 @@ app.post('/admin/request/:action', (req, res) => {
                 html: htmlContent
             };
 
-            mailer.sendMail(mailOptions, (mailErr, info) => {
-                if (mailErr) {
-                    console.error('Mail send error:', mailErr);
-                    const message = action === 'approve' 
-                        ? 'Request approved, but email notification failed. Please contact user manually.'
-                        : 'Request rejected, but email notification failed. Please contact user manually.';
-                    return res.redirect('/admin?message=' + encodeURIComponent(message));
-                }
-
-                const successMessage = action === 'approve' ? 'Request approved and email sent to user.' : 'Request rejected and email sent to user.';
-                return res.redirect('/admin?message=' + encodeURIComponent(successMessage));
-            });
+            const successMessage = action === 'approve' ? 'Request approved and email sent to user.' : 'Request rejected and email sent to user.';
+            res.redirect('/admin?message=' + encodeURIComponent(successMessage));
+            sendMailInBackground(mailOptions, `admin request ${action} for user ${user.email}`);
         });
     });
 });
@@ -356,34 +384,12 @@ app.get('/download', async (req, res) => {
         console.error('Remote container fetch failed:', err && err.message ? err.message : err);
     }
 
-    if (req.session.userId && (req.session.role === 'user' || req.session.role === 'Deployment team')) {
-        personalized = true;
-        const purposePref = String(req.session.purpose || '').toLowerCase();
-        const archPref = String(req.session.targetDevice || '').toLowerCase();
-        const accessPrefRaw = String(req.session.access || '');
-
-        const normalize = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
-        const accessPref = normalize(accessPrefRaw);
-
-        containers = containers.filter((container) => {
-            const purpose = normalize(container.purpose);
-            const arch = normalize(container.arch);
-            const access = normalize(container.access);
-
-            const purposeMatch = !purposePref || purpose.includes(String(purposePref)) || String(purposePref).includes(purpose);
-            const archMatch = !archPref || arch === String(archPref) || String(archPref).includes(arch) || (arch === 'x8664' && String(archPref).includes('x86'));
-            const accessMatch = !accessPref || accessPref === 'all' || access.includes(accessPref) || accessPref.includes(access);
-
-            return purposeMatch && archMatch && accessMatch;
-        });
-    }
-
     res.render('download', {
         access: req.session.access,
         containers,
-        personalized,
+        personalized: false,
         warningMessage,
-        headerLabel: personalized ? `Containers tailored for ${req.session.username}` : 'All Available Containers:',
+        headerLabel: 'All Available Containers:',
         ...baseViewModel(req)
     });
 });
@@ -564,18 +570,8 @@ app.post('/contact', (req, res) => {
                                    </ul>`
                         };
 
-                        mailer.sendMail(mailOptions, (mailErr, info) => {
-                            if (mailErr) {
-                                console.error('Mail send error:', mailErr);
-                                return res.render('contact', {
-                                    error: 'Your request was updated, but we could not send the notification email. Please contact support directly.',
-                                    formData,
-                                    ...baseViewModel(req)
-                                });
-                            }
-
-                            return res.redirect('/success');
-                        });
+                        res.redirect('/success');
+                        sendMailInBackground(mailOptions, `updated login request from ${email}`);
                     });
                 return;
             }
@@ -612,18 +608,8 @@ app.post('/contact', (req, res) => {
                            </ul>`
                 };
 
-                mailer.sendMail(mailOptions, (mailErr, info) => {
-                    if (mailErr) {
-                        console.error('Mail send error:', mailErr);
-                        return res.render('contact', {
-                            error: 'Your request was recorded, but we could not send the notification email. Please contact support directly.',
-                            formData,
-                            ...baseViewModel(req)
-                        });
-                    }
-
-                    return res.redirect('/success');
-                });
+                res.redirect('/success');
+                sendMailInBackground(mailOptions, `new login request from ${email}`);
             });
     });
 });
