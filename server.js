@@ -6,13 +6,23 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const nodemailer = require('nodemailer');
 const svgCaptcha = require('svg-captcha');
+const crypto = require('crypto');
 const db = require('./db');
 
 const app = express();
 const PORT = 3000;
 const requestRecipient = process.env.REQUEST_EMAIL || 'pinakaa@cdac.in';
 const emailFromAddress = process.env.EMAIL_FROM || 'PINAKAA Studio <pinakaa@cdac.in>';
-const defaultUserPassword = process.env.DEFAULT_USER_PASSWORD || 'Welcome123';
+function generateRandomPassword(length = 12) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_+';
+    let out = '';
+    for (let i = 0; i < length; i++) {
+        out += chars[crypto.randomInt(0, chars.length)];
+    }
+    return out;
+}
+
+const DEFAULT_PASSWORD_ENV = process.env.DEFAULT_USER_PASSWORD || null;
 
 const transportOptions = process.env.EMAIL_HOST ? {
     host: process.env.EMAIL_HOST,
@@ -96,18 +106,24 @@ app.get('/login', (req, res) => {
     res.render('login', { error: null, captcha: captchaSvg, ...baseViewModel(req) });
 });
 
+// Endpoint to return a fresh captcha SVG fragment (AJAX-friendly)
+app.get('/captcha', (req, res) => {
+    const captchaSvg = createLoginCaptcha(req);
+    res.type('html').send(captchaSvg);
+});
+
 app.post('/login', (req, res) => {
     const username = (req.body.username || '').trim();
     const password = (req.body.password || '').trim();
     const captcha = (req.body.captcha || '').trim();
-    const storedCaptcha = (req.session.captcha || '').trim().toUpperCase();
+    const storedCaptcha = (req.session.captcha || '').trim();
 
     if (!username || !password || !captcha) {
         const captchaSvg = createLoginCaptcha(req);
         return res.render('login', { error: 'Username, password, and captcha are required.', captcha: captchaSvg, ...baseViewModel(req) });
     }
 
-    if (captcha.toUpperCase() !== storedCaptcha || !storedCaptcha) {
+    if (captcha !== storedCaptcha || !storedCaptcha) {
         const captchaSvg = createLoginCaptcha(req);
         return res.render('login', { error: 'Invalid captcha code.', captcha: captchaSvg, ...baseViewModel(req) });
     }
@@ -220,16 +236,18 @@ app.post('/admin/request/:action', (req, res) => {
             
             if (action === 'approve') {
                 subject = 'Your PINAKAA Studio Login Request - Approved';
-                textContent = `Dear ${user.name},\n\nGood news! Your login request to PINAKAA Studio has been approved.\n\nYour login credentials are:\nUsername: ${user.username}\nPassword: ${defaultUserPassword}\n\nPlease change your password after your first login for security purposes.\n\nBest regards,\nPINAKAA Admin Team`;
-                htmlContent = `<p>Dear ${user.name},</p>
-                              <p>Good news! Your login request to PINAKAA Studio has been <strong>approved</strong>.</p>
-                              <p><strong>Your login credentials are:</strong></p>
-                              <ul>
-                                <li><strong>Username:</strong> ${user.username}</li>
-                                <li><strong>Password:</strong> ${defaultUserPassword}</li>
-                              </ul>
-                              <p style="color: #E84E1B; font-weight: bold;">Please change your password after your first login for security purposes.</p>
-                              <p>Best regards,<br/>PINAKAA Admin Team</p>`;
+                                // Use the password stored for this user (generated when request was submitted)
+                                const userPassword = user.password || (DEFAULT_PASSWORD_ENV || '');
+                                textContent = `Dear ${user.name},\n\nGood news! Your login request to PINAKAA Studio has been approved.\n\nYour login credentials are:\nUsername: ${user.username}\nPassword: ${userPassword}\n\nPlease change your password after your first login for security purposes.\n\nBest regards,\nPINAKAA Admin Team`;
+                                htmlContent = `<p>Dear ${user.name},</p>
+                                                            <p>Good news! Your login request to PINAKAA Studio has been <strong>approved</strong>.</p>
+                                                            <p><strong>Your login credentials are:</strong></p>
+                                                            <ul>
+                                                                <li><strong>Username:</strong> ${user.username}</li>
+                                                                <li><strong>Password:</strong> ${userPassword}</li>
+                                                            </ul>
+                                                            <p style="color: #E84E1B; font-weight: bold;">Please change your password after your first login for security purposes.</p>
+                                                            <p>Best regards,<br/>PINAKAA Admin Team</p>`;
             } else {
                 const reasonText = rejectionReason ? `Reason: ${rejectionReason}\n\n` : '';
                 const reasonHtml = rejectionReason ? `<p><strong>Reason:</strong> ${rejectionReason}</p>` : '';
@@ -486,6 +504,9 @@ app.get('/documentation', (req, res) => {
 
 app.post('/contact', (req, res) => {
     const { name, email, purpose, 'target-device': targetDevice, organization, role, 'container-access': containerAccess, product_name: productName, team_name: teamName } = req.body;
+    // Normalize containerAccess which may be a single string or an array of strings
+    const containerAccessNormalized = Array.isArray(containerAccess) ? containerAccess.join(',') : containerAccess;
+    // Keep original `containerAccess` shape in formData so templates can render checkbox selections
     const formData = { name, email, purpose, targetDevice, organization, role, containerAccess, productName, teamName };
 
     if (!name || !email || !purpose || !targetDevice || !organization || !role) {
@@ -504,7 +525,7 @@ app.post('/contact', (req, res) => {
         });
     }
 
-    if (role === 'Deployment team' && !containerAccess) {
+    if (role === 'Deployment team' && (!containerAccess || (Array.isArray(containerAccess) && containerAccess.length === 0))) {
         return res.render('contact', {
             error: 'Deployment team requests require a container access type selection.',
             formData,
@@ -540,8 +561,10 @@ app.post('/contact', (req, res) => {
                 });
             } else if (existingUser.status === 'rejected') {
                 // Allow resubmission by updating the existing rejected request to pending
+                // Generate a fresh password for the resubmitted request (unless overridden by env)
+                const newPassword = DEFAULT_PASSWORD_ENV || generateRandomPassword();
                 db.run(`UPDATE users SET name = ?, password = ?, purpose = ?, target_device = ?, role = ?, organization = ?, container_access = ?, product_name = ?, team_name = ?, status = 'pending' WHERE id = ?`,
-                    [name, defaultUserPassword, purpose, targetDevice, role, organization, role === 'Deployment team' ? containerAccess : 'Login Request', productName || null, teamName || null, existingUser.id], function(updateErr) {
+                    [name, newPassword, purpose, targetDevice, role, organization, role === 'Deployment team' ? containerAccessNormalized : 'Login Request', productName || null, teamName || null, existingUser.id], function(updateErr) {
                         if (updateErr) {
                             return res.render('contact', {
                                 error: 'Unable to update your request at this time. Please try again later.',
@@ -554,7 +577,7 @@ app.post('/contact', (req, res) => {
                             from: emailFromAddress,
                             to: requestRecipient,
                             subject: `Updated login request from ${name}`,
-                            text: `Updated login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nContainer Access: ${containerAccess || 'N/A'}\nSubmitted At: ${now}`,
+                                                        text: `Updated login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nContainer Access: ${containerAccessNormalized || 'N/A'}\nSubmitted At: ${now}`,
                             html: `<p>An updated login request has been submitted with the following details:</p>
                                    <ul>
                                      <li><strong>Name:</strong> ${name}</li>
@@ -563,9 +586,9 @@ app.post('/contact', (req, res) => {
                                      <li><strong>Purpose:</strong> ${purpose}</li>
                                      <li><strong>Target Device/Architecture:</strong> ${targetDevice}</li>
                                      <li><strong>Organization:</strong> ${organization}</li>
-                                     <li><strong>Product Name:</strong> ${productName || 'N/A'}</li>
-                                     <li><strong>Team Name:</strong> ${teamName || 'N/A'}</li>
-                                     <li><strong>Container Access:</strong> ${containerAccess || 'N/A'}</li>
+                                                                         <li><strong>Product Name:</strong> ${productName || 'N/A'}</li>
+                                                                         <li><strong>Team Name:</strong> ${teamName || 'N/A'}</li>
+                                                                         <li><strong>Container Access:</strong> ${containerAccessNormalized || 'N/A'}</li>
                                      <li><strong>Submitted At:</strong> ${now}</li>
                                    </ul>`
                         };
@@ -577,9 +600,10 @@ app.post('/contact', (req, res) => {
             }
         }
 
+        const generatedPassword = DEFAULT_PASSWORD_ENV || generateRandomPassword();
         db.run(`INSERT INTO users (username, name, email, password, purpose, target_device, container_access, role, organization, product_name, team_name, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-            [username, name, email, defaultUserPassword, purpose, targetDevice, role === 'Deployment team' ? containerAccess : 'Login Request', role, organization, productName || null, teamName || null], function(insertErr) {
+            [username, name, email, generatedPassword, purpose, targetDevice, role === 'Deployment team' ? containerAccessNormalized : 'Login Request', role, organization, productName || null, teamName || null], function(insertErr) {
                 if (insertErr) {
                     return res.render('contact', {
                         error: 'Unable to save your request at this time. Please try again later.',
@@ -592,7 +616,7 @@ app.post('/contact', (req, res) => {
                     from: emailFromAddress,
                     to: requestRecipient,
                     subject: `New login request from ${name}`,
-                    text: `New login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nContainer Access: ${containerAccess || 'N/A'}\nSubmitted At: ${now}`,
+                                        text: `New login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nContainer Access: ${containerAccessNormalized || 'N/A'}\nSubmitted At: ${now}`,
                     html: `<p>A new login request has been submitted with the following details:</p>
                            <ul>
                              <li><strong>Name:</strong> ${name}</li>
@@ -601,9 +625,9 @@ app.post('/contact', (req, res) => {
                              <li><strong>Purpose:</strong> ${purpose}</li>
                              <li><strong>Target Device/Architecture:</strong> ${targetDevice}</li>
                              <li><strong>Organization:</strong> ${organization}</li>
-                             <li><strong>Product Name:</strong> ${productName || 'N/A'}</li>
-                             <li><strong>Team Name:</strong> ${teamName || 'N/A'}</li>
-                             <li><strong>Container Access:</strong> ${containerAccess || 'N/A'}</li>
+                                                         <li><strong>Product Name:</strong> ${productName || 'N/A'}</li>
+                                                         <li><strong>Team Name:</strong> ${teamName || 'N/A'}</li>
+                                                         <li><strong>Container Access:</strong> ${containerAccessNormalized || 'N/A'}</li>
                              <li><strong>Submitted At:</strong> ${now}</li>
                            </ul>`
                 };

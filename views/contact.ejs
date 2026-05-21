@@ -240,17 +240,23 @@ pinakaa@cdac.in
 </div>
 <div id="deploymentTeamAccess" class="space-y-4 <%= formData.role === 'Deployment team' ? '' : 'hidden' %>">
     <div>
-        <label class="block text-body-sm text-on-surface mb-1" for="container-access">Container access type</label>
-        <select id="container-access" name="container-access" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none">
-            <option value="" disabled <%= !formData.containerAccess ? 'selected' : '' %>>Select container access</option>
-            <option value="GPU-Optimized" <%= formData.containerAccess === 'GPU-Optimized' ? 'selected' : '' %>>GPU-Optimized</option>
-            <option value="CPU-Only" <%= formData.containerAccess === 'CPU-Only' ? 'selected' : '' %>>CPU-Only</option>
-            <option value="AMD Based" <%= formData.containerAccess === 'AMD Based' ? 'selected' : '' %>>AMD Based</option>
-            <option value="Intel Based" <%= formData.containerAccess === 'Intel Based' ? 'selected' : '' %>>Intel Based</option>
-            <option value="RISC-V Based" <%= formData.containerAccess === 'RISC-V Based' ? 'selected' : '' %>>RISC-V Based</option>
-            <option value="For Cluster" <%= formData.containerAccess === 'For Cluster' ? 'selected' : '' %>>For Cluster</option>
-            <option value="For Single Server" <%= formData.containerAccess === 'For Single Server' ? 'selected' : '' %>>For Single Server</option>
-        </select>
+        <label class="block text-body-sm text-on-surface mb-1">Container access type</label>
+        <div class="relative">
+            <button type="button" id="containerAccessToggle" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-left text-body-sm text-on-surface flex items-center justify-between focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                <span id="containerAccessSummary" class="truncate"><%= Array.isArray(formData.containerAccess) ? formData.containerAccess.join(', ') : formData.containerAccess || 'Select one or more options' %></span>
+                <span class="material-symbols-outlined">expand_more</span>
+            </button>
+            <div id="containerAccessList" class="absolute left-0 right-0 mt-1 max-h-56 overflow-auto rounded border border-outline-variant bg-surface p-3 shadow-lg hidden">
+                <label class="inline-flex items-center gap-2 mb-2 w-full"><input type="checkbox" name="container-access" value="GPU-Optimized" <%= (Array.isArray(formData.containerAccess) ? formData.containerAccess.includes('GPU-Optimized') : formData.containerAccess === 'GPU-Optimized') ? 'checked' : '' %> class="h-4 w-4" /> <span>GPU-Optimized</span></label>
+                <label class="inline-flex items-center gap-2 mb-2 w-full"><input type="checkbox" name="container-access" value="CPU-Only" <%= (Array.isArray(formData.containerAccess) ? formData.containerAccess.includes('CPU-Only') : formData.containerAccess === 'CPU-Only') ? 'checked' : '' %> class="h-4 w-4" /> <span>CPU-Only</span></label>
+                <label class="inline-flex items-center gap-2 mb-2 w-full"><input type="checkbox" name="container-access" value="AMD Based" <%= (Array.isArray(formData.containerAccess) ? formData.containerAccess.includes('AMD Based') : formData.containerAccess === 'AMD Based') ? 'checked' : '' %> class="h-4 w-4" /> <span>AMD Based</span></label>
+                <label class="inline-flex items-center gap-2 mb-2 w-full"><input type="checkbox" name="container-access" value="Intel Based" <%= (Array.isArray(formData.containerAccess) ? formData.containerAccess.includes('Intel Based') : formData.containerAccess === 'Intel Based') ? 'checked' : '' %> class="h-4 w-4" /> <span>Intel Based</span></label>
+                <label class="inline-flex items-center gap-2 mb-2 w-full"><input type="checkbox" name="container-access" value="RISC-V Based" <%= (Array.isArray(formData.containerAccess) ? formData.containerAccess.includes('RISC-V Based') : formData.containerAccess === 'RISC-V Based') ? 'checked' : '' %> class="h-4 w-4" /> <span>RISC-V Based</span></label>
+                <label class="inline-flex items-center gap-2 mb-2 w-full"><input type="checkbox" name="container-access" value="For Cluster" <%= (Array.isArray(formData.containerAccess) ? formData.containerAccess.includes('For Cluster') : formData.containerAccess === 'For Cluster') ? 'checked' : '' %> class="h-4 w-4" /> <span>For Cluster</span></label>
+                <label class="inline-flex items-center gap-2 mb-2 w-full"><input type="checkbox" name="container-access" value="For Single Server" <%= (Array.isArray(formData.containerAccess) ? formData.containerAccess.includes('For Single Server') : formData.containerAccess === 'For Single Server') ? 'checked' : '' %> class="h-4 w-4" /> <span>For Single Server</span></label>
+            </div>
+            <p id="containerAccessError" class="mt-2 text-sm text-red-700 hidden">Select at least one access type.</p>
+        </div>
     </div>
 </div>
 <div>
@@ -263,7 +269,7 @@ pinakaa@cdac.in
 <textarea id="purpose" name="purpose" required rows="4" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="Describe your intended use"><%= formData.purpose || '' %></textarea>
 </div>
 <div>
-<label class="block text-body-sm text-on-surface mb-1" for="organization">Organization</label>
+<label class="block text-body-sm text-on-surface mb-1" for="organization">Organization/Centre</label>
 <input id="organization" name="organization" type="text" required value="<%= formData.organization || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" />
 </div>
 <button type="submit" class="inline-flex items-center justify-center rounded bg-primary px-6 py-3 text-on-primary font-semibold hover:bg-primary-container transition-colors">Submit Request</button>
@@ -302,12 +308,67 @@ function updateRoleFields() {
 
     document.getElementById('product_name').required = isProductOwner;
     document.getElementById('team_name').required = isProductOwner;
-    document.getElementById('container-access').required = isDeploymentTeam;
+}
+
+function updateContainerAccessSummary() {
+    const summary = document.getElementById('containerAccessSummary');
+    const checkboxes = [...document.querySelectorAll('#containerAccessList input[name="container-access"]')];
+    const selected = checkboxes.filter(cb => cb.checked).map(cb => cb.value);
+    summary.textContent = selected.length ? selected.join(', ') : 'Select one or more options';
+}
+
+function validateContainerAccess() {
+    const checkboxes = [...document.querySelectorAll('#containerAccessList input[name="container-access"]')];
+    const error = document.getElementById('containerAccessError');
+    const isDeploymentTeam = roleSelect.value === 'Deployment team';
+    const selected = checkboxes.some(cb => cb.checked);
+
+    if (!isDeploymentTeam) {
+        error.classList.add('hidden');
+        return true;
+    }
+
+    if (!selected) {
+        error.classList.remove('hidden');
+        return false;
+    }
+
+    error.classList.add('hidden');
+    return true;
+}
+
+const containerAccessToggle = document.getElementById('containerAccessToggle');
+const containerAccessList = document.getElementById('containerAccessList');
+const containerCheckboxes = document.querySelectorAll('#containerAccessList input[name="container-access"]');
+
+containerCheckboxes.forEach(cb => cb.addEventListener('change', () => {
+    updateContainerAccessSummary();
+    validateContainerAccess();
+}));
+
+if (containerAccessToggle) {
+    containerAccessToggle.addEventListener('click', () => {
+        containerAccessList.classList.toggle('hidden');
+    });
+}
+
+const contactForm = document.querySelector('form[action="/contact"]');
+if (contactForm) {
+    contactForm.addEventListener('submit', (event) => {
+        if (!validateContainerAccess()) {
+            event.preventDefault();
+            const isDeploymentTeam = roleSelect.value === 'Deployment team';
+            if (isDeploymentTeam) {
+                containerAccessList.classList.remove('hidden');
+            }
+        }
+    });
 }
 
 if (roleSelect) {
     roleSelect.addEventListener('change', updateRoleFields);
     updateRoleFields();
+    updateContainerAccessSummary();
 }
 </script>
 </body>

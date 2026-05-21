@@ -173,7 +173,7 @@
     </button>
 </div>
 <div class="sm:col-span-2">
-    <input class="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-technical-md text-technical-md text-on-surface uppercase" id="captcha" name="captcha" placeholder="Enter code" required="" type="text"/>
+    <input class="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-technical-md text-technical-md text-on-surface" id="captcha" name="captcha" placeholder="Enter code" required="" type="text"/>
 </div>
 </div>
 </div>
@@ -216,13 +216,26 @@ window.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (document.getElementById('captcha')) {
-            document.getElementById('captcha').value = captcha.toUpperCase();
-        }
+        // Do not modify user input casing here; server compares case-insensitively.
     });
 
-    document.getElementById('reloadCaptcha')?.addEventListener('click', () => {
-        window.location.reload();
+    document.getElementById('reloadCaptcha')?.addEventListener('click', async () => {
+        const btn = document.getElementById('reloadCaptcha');
+        if (btn) btn.disabled = true;
+        try {
+            const resp = await fetch('/captcha', { cache: 'no-store' });
+            if (!resp.ok) throw new Error('Network response was not ok');
+            const html = await resp.text();
+            const container = document.getElementById('captchaImage');
+            if (container) container.innerHTML = html;
+            const input = document.getElementById('captcha');
+            if (input) input.focus();
+        } catch (err) {
+            console.error('Failed to reload captcha', err);
+            alert('Unable to reload captcha. Please try again.');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
     });
 });
 </script>
