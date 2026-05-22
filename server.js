@@ -88,7 +88,7 @@ app.use(helmet({
 // CORS configuration - enables safe cross-origin requests
 // CORS is needed for front-end/back-end communication when they're on different origins
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'https://localhost:3000'],
+    origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'https://localhost:3000', 'https://10.180.192.124:8448', 'https://pinakaa.cdacb.in:8447'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
