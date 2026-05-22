@@ -1,9 +1,15 @@
 // server.js
 require('dotenv').config();
+const https = require('https');
+const fs = require('fs');
 const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
+const helmet = require('helmet');
+const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+const { body, validationResult } = require('express-validator');
 const nodemailer = require('nodemailer');
 const svgCaptcha = require('svg-captcha');
 const crypto = require('crypto');
@@ -12,6 +18,25 @@ const db = require('./db');
 const app = express();
 const PORT = 3000;
 const requestRecipient = process.env.REQUEST_EMAIL || 'pinakaa@cdac.in';
+
+// Security: Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.'
+});
+
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Limit login attempts to 5 per 15 minutes
+    message: 'Too many login attempts, please try again later.'
+});
+
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 50,
+    message: 'Too many API requests, please try again later.'
+});
 const emailFromAddress = process.env.EMAIL_FROM || 'PINAKAA Studio <pinakaa@cdac.in>';
 function generateRandomPassword(length = 12) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_+';
@@ -45,16 +70,49 @@ const transportOptions = process.env.EMAIL_HOST ? {
 const mailer = nodemailer.createTransport(transportOptions);
 
 // Middleware
+// Security: Helmet - sets various HTTP headers for security
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://fonts.googleapis.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.tailwindcss.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
+            connectSrc: ["'self'"],
+            imgSrc: ["'self'", "data:", "https:"],
+            frameSrc: ["'none'"]
+        }
+    }
+}));
+
+// CORS configuration - enables safe cross-origin requests
+// CORS is needed for front-end/back-end communication when they're on different origins
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'https://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Apply rate limiting to all requests
+app.use(limiter);
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(express.static('public'));
-// Serve images placed in views/assets (e.g., pinakaa_logo.jpg)
+// Serve static files from views/assets and public directory (if it exists)
 app.use('/assets', express.static(path.join(__dirname, 'views', 'assets')));
+app.use(express.static(path.join(__dirname, 'public'), { etag: false }));
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json()); // Add JSON parsing for API requests
 app.use(session({
-    secret: 'supercomputing-mission-secret',
+    secret: process.env.SESSION_SECRET || 'supercomputing-mission-secret',
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    cookie: { 
+        secure: true, // Only send cookie over HTTPS
+        httpOnly: true, // Prevent client-side JS access
+        sameSite: 'strict' // CSRF protection
+    }
 }));
 
 const baseViewModel = (req) => ({
@@ -112,16 +170,32 @@ app.get('/captcha', (req, res) => {
     res.type('html').send(captchaSvg);
 });
 
-app.post('/login', (req, res) => {
+// Input validation for login
+const loginValidationRules = () => [
+    body('username')
+        .trim()
+        .notEmpty().withMessage('Username is required')
+        .isLength({ min: 3, max: 50 }).withMessage('Username must be between 3 and 50 characters'),
+    body('password')
+        .notEmpty().withMessage('Password is required')
+        .isLength({ min: 1 }).withMessage('Password cannot be empty'),
+    body('captcha')
+        .trim()
+        .notEmpty().withMessage('Captcha is required')
+];
+
+app.post('/login', loginLimiter, loginValidationRules(), (req, res) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const captchaSvg = createLoginCaptcha(req);
+        return res.render('login', { error: errors.array()[0].msg, captcha: captchaSvg, ...baseViewModel(req) });
+    }
+
     const username = (req.body.username || '').trim();
     const password = (req.body.password || '').trim();
     const captcha = (req.body.captcha || '').trim();
     const storedCaptcha = (req.session.captcha || '').trim();
-
-    if (!username || !password || !captcha) {
-        const captchaSvg = createLoginCaptcha(req);
-        return res.render('login', { error: 'Username, password, and captcha are required.', captcha: captchaSvg, ...baseViewModel(req) });
-    }
 
     if (captcha !== storedCaptcha || !storedCaptcha) {
         const captchaSvg = createLoginCaptcha(req);
@@ -176,22 +250,50 @@ app.get('/admin', (req, res) => {
 });
 
 // 3.1 Add User
-app.post('/admin/add-user', (req, res) => {
+const addUserValidationRules = () => [
+    body('username')
+        .trim()
+        .notEmpty().withMessage('Username is required')
+        .isLength({ min: 3, max: 50 }).withMessage('Username must be between 3 and 50 characters')
+        .matches(/^[a-zA-Z0-9_-]+$/).withMessage('Username can only contain alphanumeric characters, underscores, and hyphens'),
+    body('email')
+        .trim()
+        .isEmail().withMessage('Valid email is required'),
+    body('password')
+        .isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+    body('purpose')
+        .trim()
+        .notEmpty().withMessage('Purpose is required'),
+    body('container-access')
+        .trim()
+        .notEmpty().withMessage('Container access is required'),
+    body('arch')
+        .trim()
+        .notEmpty().withMessage('Architecture is required'),
+    body('organization')
+        .trim()
+        .notEmpty().withMessage('Organization is required')
+];
+
+app.post('/admin/add-user', apiLimiter, addUserValidationRules(), (req, res) => {
     if (req.session.role !== 'admin') return res.status(403).json({ error: "Unauthorized" });
 
-    const { username, email, password, purpose, 'container-access': containerAccess, arch, organization } = req.body;
-    if (!username || !email || !password || !purpose || !containerAccess || !arch || !organization) {
-        return res.status(400).json({ error: 'Please fill in all required fields.' });
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
     }
 
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(email)) {
-        return res.status(400).json({ error: 'Please provide a valid email address.' });
-    }
+    const { username, email, password, purpose, 'container-access': containerAccess, arch, organization } = req.body;
 
     db.run(`INSERT INTO users (username, email, password, purpose, target_device, container_access, role, organization) 
             VALUES (?, ?, ?, ?, ?, ?, 'user', ?)`, [username, email, password, purpose, arch, containerAccess, organization], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
+        if (err) {
+            if (err.message.includes('UNIQUE constraint failed')) {
+                return res.status(400).json({ error: 'Username or email already exists.' });
+            }
+            return res.status(500).json({ error: 'An error occurred while creating the user.' });
+        }
         res.json({ success: true });
     });
 });
@@ -680,6 +782,20 @@ app.get('/success', (req, res) => {
     res.render('success', { ...baseViewModel(req) });
 });
 
-app.listen(PORT, () => {
-    console.log(`PINAKAA UI running securely on http://localhost:${PORT}`);
+// Load SSL certificates
+const options = {
+    key: fs.readFileSync(path.join(__dirname, 'server.key')),
+    cert: fs.readFileSync(path.join(__dirname, 'server.cert'))
+};
+
+// Create HTTPS server
+https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
+    console.log(`PINAKAA UI running securely on https://localhost:${PORT}`);
+    console.log('Security features enabled:');
+    console.log('  ✓ HTTPS/SSL enabled');
+    console.log('  ✓ Helmet security headers enabled');
+    console.log('  ✓ CORS configured');
+    console.log('  ✓ Rate limiting enabled');
+    console.log('  ✓ Input validation enabled');
+    console.log('  ✓ Session cookies: secure, httpOnly, sameSite=strict');
 });
