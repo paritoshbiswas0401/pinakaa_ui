@@ -80,7 +80,7 @@ app.use(helmet({
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
             connectSrc: ["'self'"],
             imgSrc: ["'self'", "data:", "https:"],
-            frameSrc: ["'none'"]
+            frameSrc: ["'self'"]
         }
     }
 }));
@@ -99,8 +99,9 @@ app.use(limiter);
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-// Serve static files from views/assets and public directory (if it exists)
+// Serve static files from views/assets, public directory, and PDF.js assets
 app.use('/assets', express.static(path.join(__dirname, 'views', 'assets')));
+app.use('/pdfjs', express.static(path.join(__dirname, 'node_modules', 'pdfjs-dist')));
 app.use(express.static(path.join(__dirname, 'public'), { etag: false }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json()); // Add JSON parsing for API requests

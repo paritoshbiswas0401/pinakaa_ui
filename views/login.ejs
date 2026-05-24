@@ -108,7 +108,43 @@
         }
     </script>
 </head>
-<body class="bg-background min-h-screen flex flex-col font-body-md text-on-background">
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-[80px]">
+<nav class="bg-surface-container-lowest dark:bg-inverse-surface shadow-sm dark:shadow-none fixed top-0 left-0 w-full z-50 flex items-center justify-between px-margin-md h-20 mx-auto">
+<div class="flex items-center gap-margin-md">
+<a href="/" class="flex items-center hover:opacity-80 transition-opacity" style="text-decoration: none;">
+    <img src="/assets/pinakaa_logo.jpg" alt="Pinakaa Logo" class="h-14 w-auto object-contain"/>
+</a>
+<div class="hidden md:flex items-center gap-margin-sm h-full">
+<% if (role === 'admin') { %>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/download">Containers</a>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/documentation">Documentation</a>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/contact">Contact</a>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/admin">Support</a>
+<% } else { %>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/download">Containers</a>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/documentation">Documentation</a>
+<a class="text-body-md text-on-surface-variant dark:text-surface-variant px-3 py-2 hover:text-primary-container dark:hover:text-primary-fixed-dim transition-colors duration-200 h-full flex items-center" href="/contact">Contact</a>
+<% } %>
+</div>
+</div>
+<div class="flex items-center gap-margin-sm">
+<div class="flex items-center gap-3">
+<button class="text-on-surface-variant hover:text-primary transition-colors mr-2" title="<%= username ? username : 'Guest' %>">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+<div class="flex items-center gap-margin-md">
+<a class="flex items-center hover:opacity-80 transition-opacity" style="text-decoration: none;">
+    <img src="/assets/nsm_logo.png" alt="NSM Logo" class="h-14 w-auto object-contain" style="height: 70px;"/>
+</a>
+</div>
+<div class="flex items-center gap-margin-md">
+<a class="flex items-center hover:opacity-80 transition-opacity" style="text-decoration: none;">
+    <img src="/assets/cdac_logo_blue.png" alt="C-DAC Logo" class="h-14 w-auto object-contain"/>
+</a>
+</div>
+</div>
+</div>
+</nav>
 <!-- Main Canvas Content -->
 <main class="flex-grow flex items-center justify-center p-margin-md">
 <!-- Authentication Container -->

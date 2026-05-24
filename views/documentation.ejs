@@ -6,6 +6,108 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#FFF6EE",
+                        "on-error-container": "#93000a",
+                        "inverse-surface": "#2d3133",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "surface": "#ffffff",
+                        "primary": "#E84E1B",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#f4ede8",
+                        "surface-tint": "#E84E1B",
+                        "on-primary-fixed": "#4b1b00",
+                        "on-background": "#191c1e",
+                        "on-tertiary-fixed-variant": "#38485d",
+                        "secondary-container": "#FFF1E0",
+                        "inverse-primary": "#FFD6B3",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#F7DDBA",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#f7efe8",
+                        "primary-container": "#FFB67A",
+                        "surface-bright": "#ffffff",
+                        "on-primary-fixed-variant": "#9a3000",
+                        "outline": "#c9a78f",
+                        "surface-container": "#fff9f6",
+                        "surface-container-low": "#fffaf7",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-tertiary-container": "#FFF7E6",
+                        "on-tertiary-fixed": "#0b1c30",
+                        "secondary": "#6B4226",
+                        "on-primary-container": "#4b1e0f",
+                        "surface-dim": "#f1e7df",
+                        "surface-variant": "#f4ebe3",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#FFD9AE",
+                        "on-surface": "#191c1e",
+                        "primary-fixed-dim": "#FFD6B3",
+                        "on-secondary-container": "#4a3a2f",
+                        "tertiary-container": "#7a5a45",
+                        "error-container": "#ffdad6",
+                        "background": "#fffaf7",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#FFF1E0",
+                        "secondary-fixed-dim": "#F0E0CF",
+                        "on-secondary-fixed": "#131b2e",
+                        "outline-variant": "#e6d3c4",
+                        "tertiary": "#7a5a45",
+                        "on-surface-variant": "#434656"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "container-max": "1200px",
+                        "margin-sm": "16px",
+                        "margin-md": "32px",
+                        "margin-lg": "64px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "headline-xl": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "technical-md": ["JetBrains Mono"],
+                        "body-sm": ["Inter"],
+                        "technical-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "headline-xl": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "technical-md": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "technical-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .shadow-ambient {
+            box-shadow: 0px 4px 20px rgba(15, 23, 42, 0.05);
+        }
+    </style>
 </head>
 <body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-[80px]">
 <nav class="bg-surface-container-lowest dark:bg-inverse-surface shadow-sm dark:shadow-none fixed top-0 left-0 w-full z-50 flex items-center justify-between px-margin-md h-20 mx-auto">
@@ -46,44 +148,145 @@
 </div>
 </div>
 </nav>
-<main class="flex-grow w-full max-w-5xl mx-auto px-6 py-20">
-    <div class="bg-white border border-surface-variant rounded-3xl shadow-[0_20px_50px_rgba(15,23,42,0.08)] p-10">
-        <h1 class="text-4xl font-semibold mb-4">Documentation</h1>
-        <p class="text-body-md text-on-surface-variant mb-6">Guidance for requesting access and using Singularity container images.</p>
-        <section class="mb-10">
-            <h2 class="font-headline-lg text-headline-lg mb-3">How to request access</h2>
-            <ol class="list-decimal list-inside space-y-3 text-body-md text-on-surface-variant">
-                <li>Open the <strong>Request for login</strong> form by clicking <a href="/contact" class="text-primary hover:underline">Contact</a>.</li>
-                <li>Select the role that describes your responsibility.</li>
-                <li>If you are a <strong>Product Owner</strong>, provide the product name and team name.</li>
-                <li>If you are part of a <strong>Deployment team</strong>, choose the required container access type.</li>
-                <li>Submit the form and wait for administrator approval.</li>
-            </ol>
-        </section>
-        <section class="mb-10">
-            <h2 class="font-headline-lg text-headline-lg mb-3">How to use a Singularity container</h2>
-            <div class="space-y-4 text-body-md text-on-surface-variant">
-                <p>After your request is approved, log in and access the <strong>Containers</strong> page.</p>
-                <p>Download the Singularity image file (.sif) and run it on a host with Singularity installed:</p>
-                <pre class="bg-surface-container-low p-4 rounded text-sm overflow-x-auto">singularity exec <em>container-name.sif</em> <em>command</em></pre>
-                <p>For example:</p>
-                <pre class="bg-surface-container-low p-4 rounded text-sm overflow-x-auto">singularity exec tensorflow-hpc.sif python train.py</pre>
+<main class="flex-grow w-full max-w-container-max mx-auto px-4 md:px-margin-md py-margin-md">
+    <div class="mb-margin-md flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <p class="text-label-caps uppercase tracking-[0.08em] text-primary font-semibold mb-2">Documentation</p>
+            <h1 class="font-headline-lg text-headline-lg text-on-background">PINAKAA Studio User Guide</h1>
+            <p class="font-body-md text-body-md text-on-surface-variant mt-3 max-w-2xl">Below is the user guide for the PINAKAA Studio, the steps to request for login access and how to use the application.</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <a href="/assets/PINAKAA_Studio_User_Guide.pdf" download class="inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container transition-colors">
+                <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+                Download PDF
+            </a>
+            <a href="/contact" class="inline-flex items-center gap-2 bg-white text-primary border border-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container hover:text-on-primary transition-colors">
+                <span class="material-symbols-outlined" style="font-size: 18px;">contact_support</span>
+                Contact Support
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-surface-variant rounded-lg shadow-ambient overflow-hidden">
+        <div class="p-4 md:p-6 bg-surface-container-low">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div class="flex flex-wrap gap-2">
+                    <button id="zoom-out" type="button" class="inline-flex items-center gap-2 rounded border border-outline-variant bg-white px-3 py-2 text-body-sm font-semibold text-on-surface hover:border-primary hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">zoom_out</span>
+                        Zoom out
+                    </button>
+                    <button id="zoom-in" type="button" class="inline-flex items-center gap-2 rounded border border-outline-variant bg-white px-3 py-2 text-body-sm font-semibold text-on-surface hover:border-primary hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">zoom_in</span>
+                        Zoom in
+                    </button>
+                    <button id="prev-page" type="button" class="inline-flex items-center gap-2 rounded border border-outline-variant bg-white px-3 py-2 text-body-sm font-semibold text-on-surface hover:border-primary hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">chevron_left</span>
+                        Previous
+                    </button>
+                    <button id="next-page" type="button" class="inline-flex items-center gap-2 rounded border border-outline-variant bg-white px-3 py-2 text-body-sm font-semibold text-on-surface hover:border-primary hover:text-primary transition-colors">
+                        Next
+                        <span class="material-symbols-outlined" style="font-size: 18px;">chevron_right</span>
+                    </button>
+                </div>
             </div>
-        </section>
-        <section>
-            <h2 class="font-headline-lg text-headline-lg mb-3">Best practices</h2>
-            <ul class="list-disc list-inside space-y-3 text-body-md text-on-surface-variant">
-                <li>Use the right architecture and container access type for your workload.</li>
-                <li>Verify the container checksum before running it.</li>
-                <li>Contact the support team if you need additional access or have questions.</li>
-            </ul>
-        </section>
+            <div class="rounded-xl border border-outline-variant bg-white p-3">
+                <div id="pdf-status" class="mb-3 text-body-sm text-on-surface-variant">Loading PDF…</div>
+                <div class="overflow-auto">
+                    <canvas id="pdf-canvas" class="mx-auto block"></canvas>
+                </div>
+                <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-body-sm text-on-surface-variant">
+                    <span id="page-info">Page 1 of 1</span>
+                    <span id="zoom-info">100%</span>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
+<script type="module">
+    import * as pdfjsLib from '/pdfjs/build/pdf.mjs';
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdfjs/build/pdf.worker.min.mjs';
+
+    const pdfUrl = '/assets/PINAKAA_Studio_User_Guide.pdf';
+    const canvas = document.getElementById('pdf-canvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('pdf-status');
+    const pageInfo = document.getElementById('page-info');
+    const zoomInfo = document.getElementById('zoom-info');
+    const prevBtn = document.getElementById('prev-page');
+    const nextBtn = document.getElementById('next-page');
+    const zoomOutBtn = document.getElementById('zoom-out');
+    const zoomInBtn = document.getElementById('zoom-in');
+
+    let pdfDoc = null;
+    let pageNum = 1;
+    let scale = 1.2;
+
+    async function renderPage() {
+        if (!pdfDoc) return;
+
+        prevBtn.disabled = pageNum <= 1;
+        nextBtn.disabled = pageNum >= pdfDoc.numPages;
+        status.textContent = `Rendering page ${pageNum} of ${pdfDoc.numPages}…`;
+
+        const page = await pdfDoc.getPage(pageNum);
+        const viewport = page.getViewport({ scale });
+
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.floor(viewport.width * dpr);
+        canvas.height = Math.floor(viewport.height * dpr);
+        canvas.style.width = `${Math.floor(viewport.width)}px`;
+        canvas.style.height = `${Math.floor(viewport.height)}px`;
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, viewport.width, viewport.height);
+
+        await page.render({ canvasContext: ctx, viewport }).promise;
+
+        pageInfo.textContent = `Page ${pageNum} of ${pdfDoc.numPages}`;
+        zoomInfo.textContent = `${Math.round(scale * 100)}%`;
+        status.textContent = `Loaded ${pdfDoc.numPages} page${pdfDoc.numPages === 1 ? '' : 's'}`;
+    }
+
+    async function loadPdf() {
+        try {
+            status.textContent = 'Loading PDF…';
+            pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+            pageNum = 1;
+            await renderPage();
+        } catch (error) {
+            status.textContent = 'Unable to render the PDF preview.';
+            console.error('PDF.js render failed:', error);
+        }
+    }
+
+    prevBtn.addEventListener('click', async () => {
+        if (!pdfDoc || pageNum <= 1) return;
+        pageNum -= 1;
+        await renderPage();
+    });
+
+    nextBtn.addEventListener('click', async () => {
+        if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
+        pageNum += 1;
+        await renderPage();
+    });
+
+    zoomOutBtn.addEventListener('click', async () => {
+        scale = Math.max(0.75, Math.round((scale - 0.25) * 100) / 100);
+        await renderPage();
+    });
+
+    zoomInBtn.addEventListener('click', async () => {
+        scale = Math.min(2.5, Math.round((scale + 0.25) * 100) / 100);
+        await renderPage();
+    });
+
+    loadPdf();
+</script>
 <footer class="w-full bg-surface-container-low border-t border-outline-variant mt-auto">
 <div class="w-full py-margin-md px-margin-md flex flex-col md:flex-row justify-between items-center gap-base mx-auto">
 <div class="flex flex-col gap-2 items-center md:items-start text-center md:text-left">
-<!-- Fallback to JSON standard structure for Brand Logo if needed, though mostly standard copyright -->
 <p class="font-body-sm text-body-sm text-secondary">© 2026 System Software Development Group, C-DAC, NSM-STF, Bengaluru. All rights reserved</p>
 </div>
 <nav class="flex flex-wrap justify-center gap-margin-sm">
