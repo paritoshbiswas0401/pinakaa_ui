@@ -3,6 +3,12 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Documentation - PINAKAA Studio</title>
+<link rel="icon" type="image/png" href="/assets/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+<link rel="shortcut icon" href="/assets/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="PINAKAA" />
+<link rel="manifest" href="/assets/site.webmanifest" />
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -133,6 +139,18 @@
 <button class="text-on-surface-variant hover:text-primary transition-colors mr-2" title="<%= username ? username : 'Guest' %>">
 <span class="material-symbols-outlined">account_circle</span>
 </button>
+<% if (username) { %>
+<a class="bg-white text-primary border border-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container hover:text-on-primary transition-colors ml-2 hidden sm:block" href="/change-password" style="text-decoration: none;">
+                    Change Password
+                </a>
+<a class="bg-primary text-on-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container transition-colors ml-2 hidden sm:block" href="/logout" style="text-decoration: none;">
+                    Logout
+                </a>
+<% } else { %>
+<a class="bg-primary text-on-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container transition-colors ml-2 hidden sm:block" href="/login" style="text-decoration: none;">
+                    Login
+                </a>
+<% } %>
 
 <div class="flex items-center gap-margin-md">
 <a class="flex items-center hover:opacity-80 transition-opacity" style="text-decoration: none;">
@@ -156,7 +174,15 @@
             <p class="font-body-md text-body-md text-on-surface-variant mt-3 max-w-2xl">Below is the user guide for the PINAKAA Studio, the steps to request for login access and how to use the application.</p>
         </div>
         <div class="flex flex-wrap gap-3">
-            <a href="/assets/PINAKAA_Studio_User_Guide.pdf" download class="inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container transition-colors">
+            <% 
+                let pdfFileName = 'PINAKAA_General_User_Guide.pdf';
+                if (role === 'admin' || role === 'Product Owner') {
+                    pdfFileName = 'PINAKAA_ProductOwner_Guide.pdf';
+                } else if (role === 'Deployment team' || role === 'Deployment Team') {
+                    pdfFileName = 'PINAKAA_DeploymentTeam_Guide.pdf';
+                }
+            %>
+            <a href="/download/pdf/<%= pdfFileName %>" class="inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded text-body-sm font-semibold hover:bg-primary-container transition-colors">
                 <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
                 Download PDF
             </a>
@@ -207,7 +233,16 @@
 
     pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdfjs/build/pdf.worker.min.mjs';
 
-    const pdfUrl = '/assets/PINAKAA_Studio_User_Guide.pdf';
+    // Determine PDF URL based on role
+    const role = '<%= role || null %>';
+    let pdfUrl = '/assets/PINAKAA_General_User_Guide.pdf';
+    
+    if (role === 'admin' || role === 'Product Owner') {
+        pdfUrl = '/assets/PINAKAA_ProductOwner_Guide.pdf';
+    } else if (role === 'Deployment team' || role === 'Deployment Team') {
+        pdfUrl = '/assets/PINAKAA_DeploymentTeam_Guide.pdf';
+    }
+
     const canvas = document.getElementById('pdf-canvas');
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('pdf-status');
@@ -287,7 +322,7 @@
 <footer class="w-full bg-surface-container-low border-t border-outline-variant mt-auto">
 <div class="w-full py-margin-md px-margin-md flex flex-col md:flex-row justify-between items-center gap-base mx-auto">
 <div class="flex flex-col gap-2 items-center md:items-start text-center md:text-left">
-<p class="font-body-sm text-body-sm text-secondary">© 2026 System Software Development Group, C-DAC, NSM-STF, Bengaluru. All rights reserved</p>
+<p class="font-body-sm text-body-sm text-secondary">© 2026 System Software Development Group, C-DAC, HPC-STU, Bengaluru. All rights reserved</p>
 </div>
 <nav class="flex flex-wrap justify-center gap-margin-sm">
 <a class="font-technical-sm text-technical-sm text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Terms of Service</a>

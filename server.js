@@ -22,7 +22,7 @@ const requestRecipient = process.env.REQUEST_EMAIL || 'pinakaa@cdac.in';
 // Security: Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+    max: 1000, // Limit each IP to 100 requests per windowMs
     message: 'Too many requests from this IP, please try again later.'
 });
 
@@ -605,14 +605,49 @@ app.get('/documentation', (req, res) => {
     res.render('documentation', { ...baseViewModel(req) });
 });
 
+// PDF Download endpoint
+app.get('/download/pdf/:filename', (req, res) => {
+    const filename = req.params.filename;
+    
+    // Whitelist of allowed PDF files
+    const allowedPDFs = [
+        'PINAKAA_General_User_Guide.pdf',
+        'PINAKAA_ProductOwner_Guide.pdf',
+        'PINAKAA_DeploymentTeam_Guide.pdf'
+    ];
+    
+    // Validate filename
+    if (!filename || !allowedPDFs.includes(filename)) {
+        return res.status(400).json({ error: 'Invalid PDF file requested.' });
+    }
+    
+    const filePath = path.join(__dirname, 'views', 'assets', filename);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'PDF file not found.' });
+    }
+    
+    // Set headers to force download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    // Send file
+    res.sendFile(filePath);
+});
+
 app.post('/contact', (req, res) => {
     const { name, email, purpose, 'target-device': targetDevice, organization, role, 'container-access': containerAccess, product_name: productName, team_name: teamName } = req.body;
-    // Normalize containerAccess which may be a single string or an array of strings
+    // Normalize containerAccess and targetDevice which may be a single string or an array of strings
     const containerAccessNormalized = Array.isArray(containerAccess) ? containerAccess.join(',') : containerAccess;
-    // Keep original `containerAccess` shape in formData so templates can render checkbox selections
+    const targetDeviceNormalized = Array.isArray(targetDevice) ? targetDevice.join(',') : targetDevice;
+    // Keep original shapes in formData so templates can render checkbox selections
     const formData = { name, email, purpose, targetDevice, organization, role, containerAccess, productName, teamName };
 
-    if (!name || !email || !purpose || !targetDevice || !organization || !role) {
+    if (!name || !email || !purpose || !targetDeviceNormalized || !organization || !role) {
         return res.render('contact', {
             error: 'Please complete all fields before submitting the request.',
             formData,
@@ -667,7 +702,7 @@ app.post('/contact', (req, res) => {
                 // Generate a fresh password for the resubmitted request (unless overridden by env)
                 const newPassword = DEFAULT_PASSWORD_ENV || generateRandomPassword();
                 db.run(`UPDATE users SET name = ?, password = ?, purpose = ?, target_device = ?, role = ?, organization = ?, container_access = ?, product_name = ?, team_name = ?, status = 'pending' WHERE id = ?`,
-                    [name, newPassword, purpose, targetDevice, role, organization, role === 'Deployment team' ? containerAccessNormalized : 'Login Request', productName || null, teamName || null, existingUser.id], function(updateErr) {
+                    [name, newPassword, purpose, targetDeviceNormalized, role, organization, role === 'Deployment team' ? containerAccessNormalized : 'Login Request', productName || null, teamName || null, existingUser.id], function(updateErr) {
                         if (updateErr) {
                             return res.render('contact', {
                                 error: 'Unable to update your request at this time. Please try again later.',
@@ -680,14 +715,14 @@ app.post('/contact', (req, res) => {
                             from: emailFromAddress,
                             to: requestRecipient,
                             subject: `Updated login request from ${name}`,
-                                                        text: `Updated login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nContainer Access: ${containerAccessNormalized || 'N/A'}\nSubmitted At: ${now}`,
+                                                        text: `Updated login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDeviceNormalized}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nContainer Access: ${containerAccessNormalized || 'N/A'}\nSubmitted At: ${now}`,
                             html: `<p>An updated login request has been submitted with the following details:</p>
                                    <ul>
                                      <li><strong>Name:</strong> ${name}</li>
                                      <li><strong>Email:</strong> ${email}</li>
                                      <li><strong>Role:</strong> ${role}</li>
                                      <li><strong>Purpose:</strong> ${purpose}</li>
-                                     <li><strong>Target Device/Architecture:</strong> ${targetDevice}</li>
+                                     <li><strong>Target Device/Architecture:</strong> ${targetDeviceNormalized}</li>
                                      <li><strong>Organization:</strong> ${organization}</li>
                                                                          <li><strong>Product Name:</strong> ${productName || 'N/A'}</li>
                                                                          <li><strong>Team Name:</strong> ${teamName || 'N/A'}</li>
@@ -706,7 +741,7 @@ app.post('/contact', (req, res) => {
         const generatedPassword = DEFAULT_PASSWORD_ENV || generateRandomPassword();
         db.run(`INSERT INTO users (username, name, email, password, purpose, target_device, container_access, role, organization, product_name, team_name, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-            [username, name, email, generatedPassword, purpose, targetDevice, role === 'Deployment team' ? containerAccessNormalized : 'Login Request', role, organization, productName || null, teamName || null], function(insertErr) {
+            [username, name, email, generatedPassword, purpose, targetDeviceNormalized, role === 'Deployment team' ? containerAccessNormalized : 'Login Request', role, organization, productName || null, teamName || null], function(insertErr) {
                 if (insertErr) {
                     return res.render('contact', {
                         error: 'Unable to save your request at this time. Please try again later.',
@@ -719,14 +754,14 @@ app.post('/contact', (req, res) => {
                     from: emailFromAddress,
                     to: requestRecipient,
                     subject: `New login request from ${name}`,
-                                        text: `New login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDevice}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nContainer Access: ${containerAccessNormalized || 'N/A'}\nSubmitted At: ${now}`,
+                                        text: `New login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDeviceNormalized}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nContainer Access: ${containerAccessNormalized || 'N/A'}\nSubmitted At: ${now}`,
                     html: `<p>A new login request has been submitted with the following details:</p>
                            <ul>
                              <li><strong>Name:</strong> ${name}</li>
                              <li><strong>Email:</strong> ${email}</li>
                              <li><strong>Role:</strong> ${role}</li>
                              <li><strong>Purpose:</strong> ${purpose}</li>
-                             <li><strong>Target Device/Architecture:</strong> ${targetDevice}</li>
+                             <li><strong>Target Device/Architecture:</strong> ${targetDeviceNormalized}</li>
                              <li><strong>Organization:</strong> ${organization}</li>
                                                          <li><strong>Product Name:</strong> ${productName || 'N/A'}</li>
                                                          <li><strong>Team Name:</strong> ${teamName || 'N/A'}</li>
@@ -791,7 +826,7 @@ const options = {
 
 // Create HTTPS server
 https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
-    console.log(`PINAKAA UI running securely on https://localhost:${PORT}`);
+    console.log(`PINAKAA UI running securely on https://pinakaa.cdacb.in:${PORT}`);
     console.log('Security features enabled:');
     console.log('  ✓ HTTPS/SSL enabled');
     console.log('  ✓ Helmet security headers enabled');

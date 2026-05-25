@@ -4,6 +4,12 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Request for Login - PINAKAA Studio</title>
+<link rel="icon" type="image/png" href="/assets/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+<link rel="shortcut icon" href="/assets/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="PINAKAA" />
+<link rel="manifest" href="/assets/site.webmanifest" />
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -260,8 +266,18 @@ pinakaa@cdac.in
     </div>
 </div>
 <div>
-<label class="block text-body-sm text-on-surface mb-1" for="target-device">Target Device/Architecture</label>
-<input id="target-device" name="target-device" type="text" required value="<%= formData.targetDevice || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="e.g., x86_64, ARM64" />
+<label class="block text-body-sm text-on-surface mb-1">Target Device/Architecture</label>
+<div class="relative">
+    <button type="button" id="targetDeviceToggle" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-left text-body-sm text-on-surface flex items-center justify-between focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+        <span id="targetDeviceSummary" class="truncate"><%= Array.isArray(formData.targetDevice) ? formData.targetDevice.join(', ') : formData.targetDevice || 'Select one or more options' %></span>
+        <span class="material-symbols-outlined">expand_more</span>
+    </button>
+    <div id="targetDeviceList" class="absolute left-0 right-0 mt-1 max-h-56 overflow-auto rounded border border-outline-variant bg-surface p-3 shadow-lg hidden">
+        <label class="inline-flex items-center gap-2 mb-2 w-full"><input type="checkbox" name="target-device" value="x86_64" <%= (Array.isArray(formData.targetDevice) ? formData.targetDevice.includes('x86_64') : formData.targetDevice === 'x86_64') ? 'checked' : '' %> class="h-4 w-4" /> <span>x86_64</span></label>
+        <label class="inline-flex items-center gap-2 mb-2 w-full"><input type="checkbox" name="target-device" value="AArch64" <%= (Array.isArray(formData.targetDevice) ? formData.targetDevice.includes('AArch64') : formData.targetDevice === 'AArch64') ? 'checked' : '' %> class="h-4 w-4" /> <span>AArch64</span></label>
+        <label class="inline-flex items-center gap-2 mb-2 w-full"><input type="checkbox" name="target-device" value="RV64GC" <%= (Array.isArray(formData.targetDevice) ? formData.targetDevice.includes('RV64GC') : formData.targetDevice === 'RV64GC') ? 'checked' : '' %> class="h-4 w-4" /> <span>RV64GC</span></label>
+    </div>
+    <p id="targetDeviceError" class="mt-2 text-sm text-red-700 hidden">Select at least one target device.</p>
 </div>
 </div>
 <div>
@@ -282,7 +298,7 @@ pinakaa@cdac.in
 <div class="w-full py-margin-md px-margin-md flex flex-col md:flex-row justify-between items-center gap-base mx-auto">
 <div class="flex flex-col gap-2 items-center md:items-start text-center md:text-left">
 <!-- Fallback to JSON standard structure for Brand Logo if needed, though mostly standard copyright -->
-<p class="font-body-sm text-body-sm text-secondary">© 2026 System Software Development Group, NSM-STF, C-DAC, Bengaluru. All rights reserved</p>
+<p class="font-body-sm text-body-sm text-secondary">© 2026 System Software Development Group, HPC-STU, C-DAC, Bengaluru. All rights reserved</p>
 </div>
 <nav class="flex flex-wrap justify-center gap-margin-sm">
 <a class="font-technical-sm text-technical-sm text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Terms of Service</a>
@@ -352,16 +368,40 @@ if (containerAccessToggle) {
     });
 }
 
-const contactForm = document.querySelector('form[action="/contact"]');
-if (contactForm) {
-    contactForm.addEventListener('submit', (event) => {
-        if (!validateContainerAccess()) {
-            event.preventDefault();
-            const isDeploymentTeam = roleSelect.value === 'Deployment team';
-            if (isDeploymentTeam) {
-                containerAccessList.classList.remove('hidden');
-            }
-        }
+// Target Device multi-select dropdown logic
+function updateTargetDeviceSummary() {
+    const summary = document.getElementById('targetDeviceSummary');
+    const checkboxes = [...document.querySelectorAll('#targetDeviceList input[name="target-device"]')];
+    const selected = checkboxes.filter(cb => cb.checked).map(cb => cb.value);
+    summary.textContent = selected.length ? selected.join(', ') : 'Select one or more options';
+}
+
+function validateTargetDevice() {
+    const checkboxes = [...document.querySelectorAll('#targetDeviceList input[name="target-device"]')];
+    const error = document.getElementById('targetDeviceError');
+    const selected = checkboxes.some(cb => cb.checked);
+
+    if (!selected) {
+        error.classList.remove('hidden');
+        return false;
+    }
+
+    error.classList.add('hidden');
+    return true;
+}
+
+const targetDeviceToggle = document.getElementById('targetDeviceToggle');
+const targetDeviceList = document.getElementById('targetDeviceList');
+const targetDeviceCheckboxes = document.querySelectorAll('#targetDeviceList input[name="target-device"]');
+
+targetDeviceCheckboxes.forEach(cb => cb.addEventListener('change', () => {
+    updateTargetDeviceSummary();
+    validateTargetDevice();
+}));
+
+if (targetDeviceToggle) {
+    targetDeviceToggle.addEventListener('click', () => {
+        targetDeviceList.classList.toggle('hidden');
     });
 }
 
@@ -369,6 +409,28 @@ if (roleSelect) {
     roleSelect.addEventListener('change', updateRoleFields);
     updateRoleFields();
     updateContainerAccessSummary();
+}
+
+// Updated form submission validation
+const contactFormSubmit = document.querySelector('form[action="/contact"]');
+if (contactFormSubmit) {
+    contactFormSubmit.addEventListener('submit', (event) => {
+        const containerAccessValid = validateContainerAccess();
+        const targetDeviceValid = validateTargetDevice();
+        
+        if (!containerAccessValid) {
+            event.preventDefault();
+            const isDeploymentTeam = roleSelect.value === 'Deployment team';
+            if (isDeploymentTeam) {
+                containerAccessList.classList.remove('hidden');
+            }
+        }
+        
+        if (!targetDeviceValid) {
+            event.preventDefault();
+            targetDeviceList.classList.remove('hidden');
+        }
+    });
 }
 </script>
 </body>
