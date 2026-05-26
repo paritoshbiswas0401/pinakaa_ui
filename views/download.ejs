@@ -240,7 +240,7 @@
                                     </span>
                                 </div>
                             </div>
-                            <button type="button" onclick="toggleDescription('desc-<%= index %>', this)" class="inline-flex items-center gap-2 text-primary font-semibold">
+                            <button type="button" data-toggle-desc="desc-<%= index %>" class="toggle-desc-btn inline-flex items-center gap-2 text-primary font-semibold">
                                 <span class="material-symbols-outlined text-[18px]">expand_more</span>
                                 Description
                             </button>
@@ -252,7 +252,7 @@
                     </div>
                 </div>
                 <div class="col-span-1 flex items-start justify-end text-right">
-                    <button onclick="triggerDownload('<%= container.filename %>')" class="inline-flex items-center justify-center bg-primary hover:bg-primary-container text-on-primary text-body-sm font-semibold px-4 py-2 rounded transition-colors">
+                    <button type="button" data-download-file="<%= container.filename %>" class="download-btn inline-flex items-center justify-center bg-primary hover:bg-primary-container text-on-primary text-body-sm font-semibold px-4 py-2 rounded transition-colors">
                         <span class="material-symbols-outlined text-[18px] mr-2">download</span>
                         Get
                     </button>
@@ -283,27 +283,37 @@
 </footer>
 
 <script>
-function toggleDescription(id, button) {
-    const panel = document.getElementById(id);
-    if (!panel) {
-        console.error('Panel not found:', id);
-        return;
-    }
-    const opened = panel.classList.toggle('open');
-    const icon = button.querySelector('.material-symbols-outlined');
-    if (icon) {
-        icon.textContent = opened ? 'expand_less' : 'expand_more';
-    }
-    button.setAttribute('aria-expanded', String(opened));
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle description panels
+    document.querySelectorAll('.toggle-desc-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const panelId = this.getAttribute('data-toggle-desc');
+            const panel = document.getElementById(panelId);
+            if (!panel) {
+                console.error('Panel not found:', panelId);
+                return;
+            }
+            const opened = panel.classList.toggle('open');
+            const icon = this.querySelector('.material-symbols-outlined');
+            if (icon) {
+                icon.textContent = opened ? 'expand_less' : 'expand_more';
+            }
+            this.setAttribute('aria-expanded', String(opened));
+        });
+    });
 
-function triggerDownload(filename) {
-    if (!filename) {
-        console.error('Filename is empty');
-        return;
-    }
-    window.location.href = '/download/file/' + encodeURIComponent(filename);
-}
+    // Handle downloads
+    document.querySelectorAll('.download-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const filename = this.getAttribute('data-download-file');
+            if (!filename) {
+                console.error('Filename is empty');
+                return;
+            }
+            window.location.href = '/download/file/' + encodeURIComponent(filename);
+        });
+    });
+});
 </script>
 
 </body></html>
