@@ -357,6 +357,72 @@
 </div>
 </div>
 </main>
+
+<!-- Download Analytics Section -->
+<div class="w-full px-margin-md py-margin-md bg-surface-container-lowest border-t border-outline-variant">
+<div class="w-full max-w-container-max mx-auto flex flex-col gap-margin-md">
+    <h2 class="font-headline-lg text-headline-lg text-on-surface flex items-center gap-base">
+        <span class="material-symbols-outlined text-primary" style="font-size: 32px;">bar_chart</span>
+        Container Download Analytics
+    </h2>
+    
+    <!-- Per-Container Download Statistics -->
+    <div class="bg-surface-container-lowest border border-outline-variant shadow-[0px_4px_20px_rgba(15,23,42,0.05)] rounded-DEFAULT p-margin-sm flex flex-col h-full">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-margin-sm gap-margin-sm">
+            <h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-base">
+                <span class="material-symbols-outlined text-secondary">cloud_download</span>
+                Total Downloads per Container
+            </h3>
+        </div>
+        <div class="overflow-x-auto rounded-DEFAULT border border-outline-variant bg-surface">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-surface-container-low border-b border-outline-variant">
+                        <th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Container Filename</th>
+                        <th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Container Title</th>
+                        <th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant text-right">Download Count</th>
+                    </tr>
+                </thead>
+                <tbody class="font-technical-sm text-technical-sm text-on-surface divide-y divide-outline-variant" id="containerStatsTable">
+                    <tr>
+                        <td class="py-6 px-4 text-center text-body-sm text-on-surface-variant" colspan="3">Loading analytics...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Per-User Download History -->
+    <div class="bg-surface-container-lowest border border-outline-variant shadow-[0px_4px_20px_rgba(15,23,42,0.05)] rounded-DEFAULT p-margin-sm flex flex-col h-full">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-margin-sm gap-margin-sm">
+            <h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-base">
+                <span class="material-symbols-outlined text-secondary">history</span>
+                Download History by User
+            </h3>
+        </div>
+        <div class="overflow-x-auto rounded-DEFAULT border border-outline-variant bg-surface">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-surface-container-low border-b border-outline-variant">
+                        <th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">User</th>
+                        <th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Email</th>
+                        <th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Team</th>
+                        <th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Container</th>
+                        <th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant text-center">Downloads</th>
+                        <th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant">Last Download</th>
+                    </tr>
+                </thead>
+                <tbody class="font-technical-sm text-technical-sm text-on-surface divide-y divide-outline-variant" id="userDownloadsTable">
+                    <tr>
+                        <td class="py-6 px-4 text-center text-body-sm text-on-surface-variant" colspan="6">Loading analytics...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+
 <footer class="w-full bg-surface-container-low border-t border-outline-variant mt-auto">
 <div class="w-full py-margin-md px-margin-md flex flex-col md:flex-row justify-between items-center gap-base mx-auto">
 <div class="flex flex-col gap-2 items-center md:items-start text-center md:text-left">
@@ -372,4 +438,67 @@
 </nav>
 </div>
 </footer>
-</body></html>
+</body>
+
+<script>
+// Load download statistics when page loads
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        const response = await fetch('/api/download-statistics');
+        if (!response.ok) {
+            console.error('Failed to fetch download statistics');
+            return;
+        }
+        
+        const data = await response.json();
+        
+        // Populate container stats table
+        const containerStatsTable = document.getElementById('containerStatsTable');
+        if (data.containerStats && data.containerStats.length > 0) {
+            containerStatsTable.innerHTML = data.containerStats.map(container => `
+                <tr class="hover:bg-surface-container-lowest transition-colors">
+                    <td class="py-3 px-4 font-technical-md text-technical-md text-primary">${container.filename || '-'}</td>
+                    <td class="py-3 px-4 font-body-sm text-body-sm">${container.title || '-'}</td>
+                    <td class="py-3 px-4 text-right">
+                        <span class="inline-block bg-primary-container text-on-primary-container px-3 py-1 rounded-full font-semibold">
+                            ${container.download_count || 0}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            containerStatsTable.innerHTML = '<tr><td class="py-6 px-4 text-center text-body-sm text-on-surface-variant" colspan="3">No downloads recorded yet.</td></tr>';
+        }
+        
+        // Populate user downloads table
+        const userDownloadsTable = document.getElementById('userDownloadsTable');
+        if (data.userContainerStats && data.userContainerStats.length > 0) {
+            userDownloadsTable.innerHTML = data.userContainerStats.map(stat => {
+                const lastDownload = stat.lastDownload ? new Date(stat.lastDownload).toLocaleDateString() : '-';
+                return `
+                <tr class="hover:bg-surface-container-lowest transition-colors">
+                    <td class="py-3 px-4 font-technical-md text-technical-md text-primary">${stat.username || 'Unknown'}</td>
+                    <td class="py-3 px-4 font-body-sm text-body-sm text-on-surface-variant">${stat.email || '-'}</td>
+                    <td class="py-3 px-4 font-body-sm text-body-sm">${stat.teamName || '-'}</td>
+                    <td class="py-3 px-4 font-body-sm text-body-sm">${stat.containerTitle || stat.containerFilename || '-'}</td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="inline-block bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-semibold">
+                            ${stat.downloadCount}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 font-technical-sm text-technical-sm text-on-surface-variant">${lastDownload}</td>
+                </tr>
+            `;
+            }).join('');
+        } else {
+            userDownloadsTable.innerHTML = '<tr><td class="py-6 px-4 text-center text-body-sm text-on-surface-variant" colspan="6">No download history recorded yet.</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading download statistics:', error);
+        document.getElementById('containerStatsTable').innerHTML = '<tr><td class="py-6 px-4 text-center text-body-sm text-error" colspan="3">Error loading analytics.</td></tr>';
+        document.getElementById('userDownloadsTable').innerHTML = '<tr><td class="py-6 px-4 text-center text-body-sm text-error" colspan="6">Error loading analytics.</td></tr>';
+    }
+});
+</script>
+
+</html>

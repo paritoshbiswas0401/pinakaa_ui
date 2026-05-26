@@ -22,7 +22,7 @@ const requestRecipient = process.env.REQUEST_EMAIL || 'pinakaa@cdac.in';
 // Security: Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // Limit each IP to 100 requests per windowMs
+    max: 1000, // Limit each IP to 1000 requests per windowMs
     message: 'Too many requests from this IP, please try again later.'
 });
 
@@ -404,11 +404,11 @@ app.post('/admin/user/delete', (req, res) => {
 const { Client } = require('ssh2');
 
 const sshConfig = {
-    host: '10.180.192.122',
+    host: process.env.CONTAINER_HOST,
     port: parseInt(process.env.REMOTE_PORT, 10) || 22,
-    username: 'development',
-    password: 'deveop@@123',
-    remotePath: '/home/development/pinakaa_cpu_containers'
+    username: process.env.CONTAINER_USERNAME,
+    password: process.env.CONTAINER_PASS,
+    remotePath: process.env.CONTAINER_PATH
 };
 
 function humanSize(bytes) {
@@ -493,26 +493,53 @@ app.get('/download', async (req, res) => {
 
     try {
         const remote = await fetchRemoteContainers();
-        containers = (remote || []).map((container) => ({
-            ...container,
-            access: container.access || 'CPU/GPU',
-            purpose: container.purpose || 'Remote',
-            downloads: container.downloads || '-',
-            estimate: container.estimate || '-',
-            size: container.size || '-',
-        }));
+        containers = (remote || []).map((container) => {
+            // Note: downloads will be updated from database below
+            return {
+                ...container,
+                access: container.access || 'CPU/GPU',
+                purpose: container.purpose || 'Remote',
+                downloads: 0,  // Default, will be updated from DB
+                estimate: container.estimate || '-',
+                size: container.size || '-',
+            };
+        });
+
+        // Fetch download counts from database
+        db.all("SELECT filename, download_count FROM containers", (err, rows) => {
+            if (!err && rows) {
+                const downloadMap = {};
+                rows.forEach(row => {
+                    downloadMap[row.filename] = row.download_count;
+                });
+                
+                // Update containers with download counts from database
+                containers = containers.map(container => ({
+                    ...container,
+                    downloads: downloadMap[container.filename] || 0
+                }));
+            }
+
+            res.render('download', {
+                access: req.session.access,
+                containers,
+                personalized: false,
+                warningMessage,
+                headerLabel: 'All Available Containers:',
+                ...baseViewModel(req)
+            });
+        });
     } catch (err) {
         console.error('Remote container fetch failed:', err && err.message ? err.message : err);
+        res.render('download', {
+            access: req.session.access,
+            containers,
+            personalized: false,
+            warningMessage,
+            headerLabel: 'All Available Containers:',
+            ...baseViewModel(req)
+        });
     }
-
-    res.render('download', {
-        access: req.session.access,
-        containers,
-        personalized: false,
-        warningMessage,
-        headerLabel: 'All Available Containers:',
-        ...baseViewModel(req)
-    });
 });
 
 app.get('/download/file/:filename', (req, res) => {
@@ -552,6 +579,49 @@ app.get('/download/file/:filename', (req, res) => {
                 });
                 readStream.on('end', () => {
                     conn.end();
+                    
+                    // Track the download after successful stream completion
+                    const userId = req.session.userId;
+                    const now = new Date().toISOString();
+                    const baseName = filename.replace(/\.sif$/i, '');
+
+                    // Increment total downloads
+                    db.run("UPDATE stats SET total_downloads = total_downloads + 1 WHERE id = 1", function(err1) {
+                        if (err1) {
+                            console.error('Error incrementing total downloads:', err1);
+                        }
+                    });
+
+                    // Insert or update container download count
+                    db.run(
+                        `INSERT INTO containers (filename, title, download_count, created_at) 
+                         VALUES (?, ?, 1, ?) 
+                         ON CONFLICT(filename) DO UPDATE SET download_count = download_count + 1`,
+                        [filename, baseName, now],
+                        function(err2) {
+                            if (err2) {
+                                console.error('Error updating container download count:', err2);
+                            }
+                        }
+                    );
+
+                    // Log to download history for admin analytics
+                    db.run(
+                        "INSERT INTO download_history (user_id, container_filename, container_title, download_time) VALUES (?, ?, ?, ?)",
+                        [userId, filename, baseName, now],
+                        function(err3) {
+                            if (err3) {
+                                console.error('Error logging download to history:', err3);
+                            }
+                        }
+                    );
+
+                    // Update user's last download time
+                    db.run("UPDATE users SET last_download = ? WHERE id = ?", [now, userId], function(err4) {
+                        if (err4) {
+                            console.error('Error updating user last_download:', err4);
+                        }
+                    });
                 });
                 readStream.pipe(res);
             });
@@ -568,23 +638,59 @@ app.get('/download/file/:filename', (req, res) => {
     });
 });
 
-// 5. API Route to increment downloads
-app.post('/api/increment-download', (req, res) => {
-    if (!req.session.userId) return res.status(403).json({ error: "Unauthorized" });
+// 5. API Route to get download statistics for admin
+app.get('/api/download-statistics', (req, res) => {
+    if (req.session.role !== 'admin') return res.status(403).json({ error: "Unauthorized" });
 
-    const userId = req.session.userId;
-    const now = new Date().toISOString();
+    // Get per-container download statistics
+    db.all(
+        `SELECT filename, title, download_count FROM containers ORDER BY download_count DESC`,
+        (err1, containers) => {
+            if (err1) {
+                return res.status(500).json({ error: 'Error fetching container statistics' });
+            }
 
-    // Update total downloads
-    db.run("UPDATE stats SET total_downloads = total_downloads + 1 WHERE id = 1", function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        
-        // Update user's last download time
-        db.run("UPDATE users SET last_download = ? WHERE id = ?", [now, userId], function(err2) {
-            if (err2) return res.status(500).json({ error: err2.message });
-            res.json({ success: true });
-        });
-    });
+            // Get per-user download history
+            db.all(
+                `SELECT dh.id, dh.container_filename, dh.container_title, dh.download_time, 
+                        u.username, u.email, u.name, u.team_name
+                 FROM download_history dh
+                 LEFT JOIN users u ON dh.user_id = u.id
+                 ORDER BY dh.download_time DESC`,
+                (err2, history) => {
+                    if (err2) {
+                        return res.status(500).json({ error: 'Error fetching download history' });
+                    }
+
+                    // Calculate per-user, per-container statistics
+                    const userContainerStats = {};
+                    history.forEach(record => {
+                        const key = `${record.username || 'Unknown'}-${record.container_filename}`;
+                        if (!userContainerStats[key]) {
+                            userContainerStats[key] = {
+                                username: record.username || 'Unknown',
+                                email: record.email,
+                                name: record.name,
+                                teamName: record.team_name,
+                                containerFilename: record.container_filename,
+                                containerTitle: record.container_title,
+                                downloadCount: 0,
+                                lastDownload: null
+                            };
+                        }
+                        userContainerStats[key].downloadCount += 1;
+                        userContainerStats[key].lastDownload = record.download_time;
+                    });
+
+                    res.json({
+                        containerStats: containers || [],
+                        downloadHistory: history || [],
+                        userContainerStats: Object.values(userContainerStats)
+                    });
+                }
+            );
+        }
+    );
 });
 
 // 6. Logout

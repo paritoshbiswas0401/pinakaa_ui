@@ -119,7 +119,7 @@
             transition: max-height 0.3s ease, opacity 0.3s ease;
         }
         .toggle-panel.open {
-            max-height: 500px;
+            max-height: 1000px;
             opacity: 1;
         }
     </style>
@@ -234,6 +234,10 @@
                                     <% } %>
                                     <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.arch %></span>
                                     <span class="bg-surface-container text-on-surface border border-outline-variant px-2 py-1 rounded-full text-technical-sm"><%= container.access %></span>
+                                    <span class="bg-primary-container text-on-primary-container border border-primary px-2 py-1 rounded-full text-technical-sm font-semibold">
+                                        <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">download</span>
+                                        <%= container.downloads %>
+                                    </span>
                                 </div>
                             </div>
                             <button type="button" onclick="toggleDescription('desc-<%= index %>', this)" class="inline-flex items-center gap-2 text-primary font-semibold">
@@ -281,7 +285,10 @@
 <script>
 function toggleDescription(id, button) {
     const panel = document.getElementById(id);
-    if (!panel) return;
+    if (!panel) {
+        console.error('Panel not found:', id);
+        return;
+    }
     const opened = panel.classList.toggle('open');
     const icon = button.querySelector('.material-symbols-outlined');
     if (icon) {
@@ -291,7 +298,10 @@ function toggleDescription(id, button) {
 }
 
 function triggerDownload(filename) {
-    if (!filename) return;
+    if (!filename) {
+        console.error('Filename is empty');
+        return;
+    }
     window.location.href = '/download/file/' + encodeURIComponent(filename);
 }
 </script>

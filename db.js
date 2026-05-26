@@ -192,9 +192,35 @@ db.serialize(() => {
     // Initialize default stats if empty
     db.get("SELECT COUNT(*) AS count FROM stats", (err, row) => {
         if (row.count === 0) {
-            db.run("INSERT INTO stats (id, total_downloads) VALUES (1, 12402)");
+            db.run("INSERT INTO stats (id, total_downloads) VALUES (1, 0)");
         }
     });
+
+    // Create Containers Table for Per-Container Download Tracking
+    db.run(`CREATE TABLE IF NOT EXISTS containers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        filename TEXT UNIQUE NOT NULL,
+        title TEXT,
+        version TEXT,
+        arch TEXT,
+        access TEXT,
+        description TEXT,
+        purpose TEXT,
+        size TEXT,
+        estimate TEXT,
+        download_count INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    // Create Download History Table for Admin Analytics
+    db.run(`CREATE TABLE IF NOT EXISTS download_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        container_filename TEXT NOT NULL,
+        container_title TEXT,
+        download_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )`);
 
     // Insert Default Admin (Password hashed in production, plain text here for demo)
     // db.run(`INSERT OR IGNORE INTO users (username, email, password, purpose, target_device, container_access, role, organization) 
