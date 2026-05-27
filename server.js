@@ -16,7 +16,7 @@ const crypto = require('crypto');
 const db = require('./db');
 
 const app = express();
-const PORT = 3000;
+const PORT = 8448;
 const requestRecipient = process.env.REQUEST_EMAIL || 'pinakaa@cdac.in';
 
 // Security: Rate limiting
@@ -75,8 +75,8 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://fonts.googleapis.com"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.tailwindcss.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
             connectSrc: ["'self'"],
             imgSrc: ["'self'", "data:", "https:"],

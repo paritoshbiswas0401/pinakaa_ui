@@ -10,177 +10,12 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-title" content="PINAKAA" />
 <link rel="manifest" href="/assets/site.webmanifest" />
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            "colors": {
-                    "primary-fixed": "#FFF6EE",
-                    "on-error-container": "#93000a",
-                    "inverse-surface": "#2d3133",
-                    "on-secondary-fixed-variant": "#3f465c",
-                    "surface": "#ffffff",
-                    "primary": "#E84E1B",
-                    "on-error": "#ffffff",
-                    "surface-container-highest": "#f4ede8",
-                    "surface-tint": "#E84E1B",
-                    "on-primary-fixed": "#4b1b00",
-                    "on-background": "#191c1e",
-                    "on-tertiary-fixed-variant": "#38485d",
-                    "secondary-container": "#FFF1E0",
-                    "inverse-primary": "#FFD6B3",
-                    "on-secondary": "#ffffff",
-                    "tertiary-fixed-dim": "#F7DDBA",
-                    "error": "#ba1a1a",
-                    "surface-container-high": "#f7efe8",
-                    "primary-container": "#FFB67A",
-                    "surface-bright": "#ffffff",
-                    "on-primary-fixed-variant": "#9a3000",
-                    "outline": "#c9a78f",
-                    "surface-container": "#fff9f6",
-                    "surface-container-low": "#fffaf7",
-                    "surface-container-lowest": "#ffffff",
-                    "inverse-on-surface": "#eff1f3",
-                    "on-tertiary-container": "#FFF7E6",
-                    "on-tertiary-fixed": "#0b1c30",
-                    "secondary": "#6B4226",
-                    "on-primary-container": "#4b1b00",
-                    "surface-dim": "#f1e7df",
-                    "surface-variant": "#f4ebe3",
-                    "on-tertiary": "#ffffff",
-                    "tertiary-fixed": "#FFD9AE",
-                    "on-surface": "#191c1e",
-                    "primary-fixed-dim": "#FFD6B3",
-                    "on-secondary-container": "#4a3a2f",
-                    "tertiary-container": "#7a5a45",
-                    "error-container": "#ffdad6",
-                    "background": "#fffaf7",
-                    "on-primary": "#ffffff",
-                    "secondary-fixed": "#FFF1E0"
-            },
 
-            "borderRadius": {
-                    "DEFAULT": "0.125rem",
-                    "lg": "0.25rem",
-                    "xl": "0.5rem",
-                    "full": "0.75rem"
-            },
-            "spacing": {
-                    "margin-sm": "16px",
-                    "margin-lg": "64px",
-                    "base": "8px",
-                    "container-max": "1200px",
-                    "margin-md": "32px",
-                    "gutter": "24px"
-            },
-            "fontFamily": {
-                    "technical-sm": [
-                            "JetBrains Mono"
-                    ],
-                    "label-caps": [
-                            "Inter"
-                    ],
-                    "headline-md": [
-                            "Inter"
-                    ],
-                    "body-sm": [
-                            "Inter"
-                    ],
-                    "technical-md": [
-                            "JetBrains Mono"
-                    ],
-                    "body-md": [
-                            "Inter"
-                    ],
-                    "headline-lg": [
-                            "Inter"
-                    ],
-                    "headline-xl": [
-                            "Inter"
-                    ],
-                    "body-lg": [
-                            "Inter"
-                    ]
-            },
-            "fontSize": {
-                    "technical-sm": [
-                            "12px",
-                            {
-                                    "lineHeight": "16px",
-                                    "fontWeight": "400"
-                            }
-                    ],
-                    "label-caps": [
-                            "12px",
-                            {
-                                    "lineHeight": "16px",
-                                    "letterSpacing": "0.05em",
-                                    "fontWeight": "700"
-                            }
-                    ],
-                    "headline-md": [
-                            "24px",
-                            {
-                                    "lineHeight": "32px",
-                                    "fontWeight": "600"
-                            }
-                    ],
-                    "body-sm": [
-                            "14px",
-                            {
-                                    "lineHeight": "20px",
-                                    "fontWeight": "400"
-                            }
-                    ],
-                    "technical-md": [
-                            "14px",
-                            {
-                                    "lineHeight": "20px",
-                                    "fontWeight": "500"
-                            }
-                    ],
-                    "body-md": [
-                            "16px",
-                            {
-                                    "lineHeight": "24px",
-                                    "fontWeight": "400"
-                            }
-                    ],
-                    "headline-lg": [
-                            "32px",
-                            {
-                                    "lineHeight": "40px",
-                                    "letterSpacing": "-0.01em",
-                                    "fontWeight": "600"
-                            }
-                    ],
-                    "headline-xl": [
-                            "48px",
-                            {
-                                    "lineHeight": "56px",
-                                    "letterSpacing": "-0.02em",
-                                    "fontWeight": "700"
-                            }
-                    ],
-                    "body-lg": [
-                            "18px",
-                            {
-                                    "lineHeight": "28px",
-                                    "fontWeight": "400"
-                            }
-                    ]
-            }
-          },
-        },
-      }
-    </script>
+<link rel="stylesheet" href="/css/style.css" />
 </head>
 <body class="bg-background text-on-surface font-body-md antialiased flex flex-col min-h-screen">
 <!-- TopNavBar Component -->
@@ -200,10 +35,10 @@
 </div>
 <div class="flex items-center gap-margin-sm">
 <!-- Search Bar placeholder for "on_right" -->
-<div class="hidden lg:flex items-center bg-surface-container border border-outline-variant rounded px-3 py-1.5 focus-within:border-primary transition-colors">
+<!-- <div class="hidden lg:flex items-center bg-surface-container border border-outline-variant rounded px-3 py-1.5 focus-within:border-primary transition-colors">
 <span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-size: 18px;">search</span>
 <input class="bg-transparent border-none focus:ring-0 text-body-sm font-body-sm p-0 w-48 placeholder-on-surface-variant" placeholder="Search..." type="text"/>
-</div>
+</div> -->
 <div class="flex items-center gap-3">
 <button class="text-on-surface-variant hover:text-primary transition-colors mr-2" title="<%= username ? username : 'Guest' %>">
 <span class="material-symbols-outlined">account_circle</span>
@@ -305,10 +140,10 @@
 <span class="material-symbols-outlined text-secondary">group</span>
                         Active Authorizations
                     </h2>
-<div class="relative w-full sm:w-auto">
+<!-- <div class="relative w-full sm:w-auto">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
 <input class="w-full sm:w-64 pl-10 pr-3 py-1.5 bg-surface-container-low border border-outline-variant rounded-DEFAULT focus:border-primary focus:ring-1 focus:ring-primary font-body-sm text-body-sm text-on-surface transition-colors" placeholder="Search logs..." type="text"/>
-</div>
+</div> -->
 </div>
 <div class="overflow-x-auto flex-grow rounded-DEFAULT border border-outline-variant bg-surface">
 <table class="w-full text-left border-collapse">
