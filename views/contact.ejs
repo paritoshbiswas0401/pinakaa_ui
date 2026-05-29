@@ -125,11 +125,11 @@ pinakaa@cdac.in
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 <div>
 <label class="block text-body-sm text-on-surface mb-1" for="name">Name</label>
-<input id="name" name="name" type="text" required value="<%= formData.name || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" />
+<input id="name" name="name" type="text" autocomplete="name" required value="<%= formData.name || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" />
 </div>
 <div>
 <label class="block text-body-sm text-on-surface mb-1" for="email">Email</label>
-<input id="email" name="email" type="email" required value="<%= formData.email || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" />
+<input id="email" name="email" type="email" autocomplete="email" required value="<%= formData.email || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" />
 </div>
 <div>
 <label class="block text-body-sm text-on-surface mb-1" for="role">Roles</label>
@@ -154,7 +154,7 @@ pinakaa@cdac.in
 </div>
 <div id="deploymentTeamAccess" class="space-y-4 <%= formData.role === 'Deployment team' ? '' : 'hidden' %>">
     <div>
-        <label class="block text-body-sm text-on-surface mb-1">Container access type</label>
+        <label class="block text-body-sm text-on-surface mb-1" for="containerAccessToggle">Container access type</label>
         <div class="relative">
             <button type="button" id="containerAccessToggle" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-left text-body-sm text-on-surface flex items-center justify-between focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 <span id="containerAccessSummary" class="truncate"><%= Array.isArray(formData.containerAccess) ? formData.containerAccess.join(', ') : formData.containerAccess || 'Select one or more options' %></span>
@@ -174,7 +174,7 @@ pinakaa@cdac.in
     </div>
 </div>
 <div>
-<label class="block text-body-sm text-on-surface mb-1">Target Device/Architecture</label>
+<label class="block text-body-sm text-on-surface mb-1" for="targetDeviceToggle">Target Device/Architecture</label>
 <div class="relative">
     <button type="button" id="targetDeviceToggle" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-left text-body-sm text-on-surface flex items-center justify-between focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
         <span id="targetDeviceSummary" class="truncate"><%= Array.isArray(formData.targetDevice) ? formData.targetDevice.join(', ') : formData.targetDevice || 'Select one or more options' %></span>
@@ -194,7 +194,7 @@ pinakaa@cdac.in
 </div>
 <div>
 <label class="block text-body-sm text-on-surface mb-1" for="organization">Organization/Centre</label>
-<input id="organization" name="organization" type="text" required value="<%= formData.organization || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" />
+<input id="organization" name="organization" type="text" autocomplete="organization" required value="<%= formData.organization || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" />
 </div>
 <button type="submit" class="inline-flex items-center justify-center rounded bg-primary px-6 py-3 text-on-primary font-semibold hover:bg-primary-container transition-colors">Submit Request</button>
 </form>

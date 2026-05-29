@@ -85,7 +85,7 @@
 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
 <span class="material-symbols-outlined text-outline">account_circle</span>
 </div>
-<input class="w-full pl-10 pr-3 py-2 bg-surface border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-technical-md text-technical-md text-on-surface" id="username" name="username" placeholder="hpc_user_01 or user@example.com" required="" type="text"/>
+<input class="w-full pl-10 pr-3 py-2 bg-surface border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-technical-md text-technical-md text-on-surface" id="username" name="username" placeholder="hpc_user_01 or user@example.com" required="" type="text" autocomplete="username"/>
 </div>
 </div>
 <!-- Password Field -->
@@ -106,7 +106,7 @@
 </div>
 <!-- Captcha Challenge -->
 <div class="bg-surface-container-low border border-outline-variant rounded p-3">
-<label class="block font-label-caps text-label-caps text-on-surface-variant mb-2">Visual Verification</label>
+<label for="reloadCaptcha" class="block font-label-caps text-label-caps text-on-surface-variant mb-2">Visual Verification</label>
 <div class="grid gap-4 sm:grid-cols-[1fr_auto] items-center">
 <div class="rounded-lg border border-outline-variant bg-white p-3 overflow-hidden" id="captchaImage">
     <%- captcha %>
