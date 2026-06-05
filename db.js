@@ -21,7 +21,9 @@ db.serialize(() => {
         status TEXT DEFAULT 'active',
         last_download DATETIME,
         product_name TEXT,
-        team_name TEXT
+        team_name TEXT,
+        hod_name TEXT,
+        hod_email TEXT
     )`);
 
     const migrateUsersSource = (sourceTable, callback) => {
@@ -177,6 +179,16 @@ db.serialize(() => {
     db.run(`ALTER TABLE users ADD COLUMN team_name TEXT`, (err) => {
         if (err && !err.message.includes('duplicate column name')) {
             console.error('Error adding team_name column:', err);
+        }
+    });
+    db.run(`ALTER TABLE users ADD COLUMN hod_name TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding hod_name column:', err);
+        }
+    });
+    db.run(`ALTER TABLE users ADD COLUMN hod_email TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding hod_email column:', err);
         }
     });
     db.run(`UPDATE users SET status = 'active' WHERE status IS NULL`, (err) => {

@@ -21,6 +21,17 @@
         .shadow-ambient {
             box-shadow: 0px 4px 20px rgba(15, 23, 42, 0.05);
         }
+        /* Smooth animation for report section panel */
+        #reportSectionPanel {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 2000px;
+            opacity: 1;
+        }
+        #reportSectionPanel.hidden {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-[80px]">
@@ -94,23 +105,94 @@
 </div>
 <!-- Contact Sections -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
-<!-- General Queries -->
-<div class="bg-surface-container-lowest border border-surface-variant rounded-lg p-margin-md shadow-[0_4px_20px_rgba(15,23,42,0.05)]">
-<div class="flex items-start gap-4">
-<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">help_center</span>
-<div class="flex-1">
-<h2 class="font-headline-md text-headline-md text-on-surface mb-2">General Queries</h2>
-<p class="font-body-md text-body-md text-on-surface-variant mb-4">For any general questions, support requests, or technical assistance, please write to us at:</p>
-<a href="mailto:pinakaa@cdac.in" class="inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded font-technical-md hover:bg-primary-container transition-colors">
-<span class="material-symbols-outlined" style="font-size: 18px;">email</span>
-pinakaa@cdac.in
-</a>
-</div>
-</div>
-</div>
-<!-- Access Requests -->
-<div class="bg-surface-container-lowest border border-surface-variant rounded-lg p-margin-md shadow-[0_4px_20px_rgba(15,23,42,0.05)]">
-<div class="flex items-start gap-4">
+    <div class="space-y-6">
+        <div class="bg-surface-container-lowest border border-surface-variant rounded-lg p-margin-md shadow-[0_4px_20px_rgba(15,23,42,0.05)]">
+            <div class="flex items-start gap-4">
+                <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">help_center</span>
+                <div class="flex-1">
+                    <h2 class="font-headline-md text-headline-md text-on-surface mb-2">General Queries</h2>
+                    <p class="font-body-md text-body-md text-on-surface-variant mb-4">For any general questions, support requests, or technical assistance, please write to us at:</p>
+                    <a href="mailto:pinakaa@cdac.in" class="inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded font-technical-md hover:bg-primary-container transition-colors">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">email</span>
+                        pinakaa@cdac.in
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-surface-container-lowest border border-surface-variant rounded-lg p-margin-md shadow-[0_4px_20px_rgba(15,23,42,0.05)]">
+            <div class="flex items-start justify-between gap-4 mb-4">
+                <div class="flex items-start gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">report_problem</span>
+                    <div class="flex-1">
+                        <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Report Deployment Status</h2>
+                        <p class="font-body-md text-body-md text-on-surface-variant">Upload validation logs or results and share deployment details with the PINAKAA team.</p>
+                    </div>
+                </div>
+                <button type="button" id="reportSectionToggle" class="inline-flex items-center justify-center h-10 w-10 rounded border border-primary text-primary hover:bg-primary-container/10 transition-colors" title="Toggle report details" aria-expanded="<%= reportError || reportSuccess ? 'true' : 'false' %>">
+                    <span id="reportSectionToggleIcon" class="material-symbols-outlined transition-transform duration-200 <%= reportError || reportSuccess ? 'rotate-180' : '' %>">expand_more</span>
+                </button>
+            </div>
+            <div id="reportSectionPanel" class="<%= reportError || reportSuccess ? '' : 'hidden' %> space-y-4">
+                <% if (reportError) { %>
+                    <div class="rounded-lg border border-error-container bg-error-container px-4 py-3 mb-4 text-on-error-container">
+                        <p class="font-body-sm font-semibold">Unable to send the report:</p>
+                        <p class="font-body-sm"><%= reportError %></p>
+                    </div>
+                <% } %>
+                <% if (reportSuccess) { %>
+                    <div class="rounded-lg border border-success-container bg-success-container px-4 py-3 mb-4 text-on-surface">
+                        <p class="font-body-sm font-semibold">Success</p>
+                        <p class="font-body-sm"><%= reportSuccess %></p>
+                    </div>
+                <% } %>
+                <form method="POST" action="/report-status" enctype="multipart/form-data" class="space-y-4">
+                    <div id="reportFilesInputs"></div>
+                    <div class="rounded border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <label class="block text-body-sm text-on-surface mb-1" for="reportFilesAddButton">Attach files</label>
+                            <button type="button" id="reportFilesAddButton" class="inline-flex items-center justify-center rounded border border-outline-variant bg-surface px-4 py-2 text-body-sm text-on-surface hover:bg-primary-container/10 transition-colors">Add files</button>
+                        </div>
+                        <div id="reportFilesList" class="mt-2 grid gap-2"></div>
+                        <p id="reportFilesError" class="text-body-xs text-error-container mt-2 hidden"></p>
+                        <p class="text-body-xs text-on-surface-variant mt-2">Allowed formats: .png, .jpg, .jpeg, .pdf, .docx, .txt</p>
+                    </div>
+                    <div>
+                        <label class="block text-body-sm text-on-surface mb-1" for="report_message">Validation Logs / Env Issues & Fixes / Benchmark Results</label>
+                        <textarea id="report_message" name="report_message" rows="4" required class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="Describe validation logs, environment issues or benchmark results"><%= (reportForm && reportForm.reportMessage) || '' %></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-body-sm text-on-surface mb-1" for="server_architecture">Server name & architecture</label>
+                        <input id="server_architecture" name="server_architecture" type="text" required value="<%= (reportForm && reportForm.serverArchitecture) || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="e.g. server1.example.com / x86_64" />
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-body-sm text-on-surface mb-1" for="runtime_used">Runtime used</label>
+                            <select id="runtime_used" name="runtime_used" required class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none">
+                                <option value="" disabled <%= !(reportForm && reportForm.runtimeUsed) ? 'selected' : '' %>>Select runtime</option>
+                                <option value="SingularityCE" <%= (reportForm && reportForm.runtimeUsed) === 'SingularityCE' ? 'selected' : '' %>>SingularityCE</option>
+                                <option value="Apptainer" <%= (reportForm && reportForm.runtimeUsed) === 'Apptainer' ? 'selected' : '' %>>Apptainer</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-body-sm text-on-surface mb-1" for="runtime_version">Runtime version</label>
+                            <input id="runtime_version" name="runtime_version" type="text" required value="<%= (reportForm && reportForm.runtimeVersion) || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="Version" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-body-sm text-on-surface mb-1" for="packages_versions">Packages deployed & versions</label>
+                        <textarea id="packages_versions" name="packages_versions" rows="3" required class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="List packages and versions"><%= (reportForm && reportForm.packagesVersions) || '' %></textarea>
+                    </div>
+                    <% if (!username) { %>
+                        <p class="text-body-sm text-on-surface-variant">You need to be logged in to submit a deployment status report. <a href="/login" class="text-primary underline">Login</a></p>
+                    <% } %>
+                    <button type="submit" class="inline-flex items-center justify-center rounded bg-primary px-6 py-3 text-on-primary font-semibold hover:bg-primary-container transition-colors"><%= username ? 'Submit Deployment Report' : 'Login to Submit Report' %></button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="bg-surface-container-lowest border border-surface-variant rounded-lg p-margin-md shadow-[0_4px_20px_rgba(15,23,42,0.05)]">
+        <div class="flex items-start gap-4">
 <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">person_add</span>
 <div class="flex-1">
 <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Request for Login</h2>
@@ -142,14 +224,18 @@ pinakaa@cdac.in
 <option value="TCG" <%= formData.role === 'TCG' ? 'selected' : '' %>>TCG</option>
 </select>
 </div>
-<div id="productOwnerFields" class="space-y-4 <%= formData.role === 'Product Owner' ? '' : 'hidden' %>">
-    <div>
+<div id="roleSpecificFields" class="space-y-4 <%= formData.role === 'Product Owner' || formData.role === 'Deployment team' ? '' : 'hidden' %>">
+    <div id="productNameField" class="<%= formData.role === 'Product Owner' ? '' : 'hidden' %>">
         <label class="block text-body-sm text-on-surface mb-1" for="product_name">Product name</label>
-        <input id="product_name" name="product_name" type="text" value="<%= formData.productName || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="Product name" />
+        <input id="product_name" name="product_name" type="text" required value="<%= formData.productName || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="Product name" />
     </div>
     <div>
         <label class="block text-body-sm text-on-surface mb-1" for="team_name">Team name</label>
-        <input id="team_name" name="team_name" type="text" value="<%= formData.teamName || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="Team name" />
+        <input id="team_name" name="team_name" type="text" required value="<%= formData.teamName || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="Team name" />
+    </div>
+    <div>
+        <label class="block text-body-sm text-on-surface mb-1" for="hod_contact">Name & Email of HOD</label>
+        <input id="hod_contact" name="hod_contact" type="text" required value="<%= formData.hodContact || '' %>" class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="e.g. John Doe john.doe@company.com" />
     </div>
 </div>
 <div id="deploymentTeamAccess" class="space-y-4 <%= formData.role === 'Deployment team' ? '' : 'hidden' %>">
@@ -219,19 +305,39 @@ pinakaa@cdac.in
 </footer>
 <script>
 const roleSelect = document.getElementById('role');
-const productOwnerFields = document.getElementById('productOwnerFields');
+const roleSpecificFields = document.getElementById('roleSpecificFields');
 const deploymentTeamAccess = document.getElementById('deploymentTeamAccess');
 
 function updateRoleFields() {
     const role = roleSelect.value;
     const isProductOwner = role === 'Product Owner';
     const isDeploymentTeam = role === 'Deployment team';
+    const roleFieldsVisible = isProductOwner || isDeploymentTeam;
 
-    productOwnerFields.classList.toggle('hidden', !isProductOwner);
-    deploymentTeamAccess.classList.toggle('hidden', !isDeploymentTeam);
+    if (roleSpecificFields) {
+        roleSpecificFields.classList.toggle('hidden', !roleFieldsVisible);
+    }
+    if (deploymentTeamAccess) {
+        deploymentTeamAccess.classList.toggle('hidden', !isDeploymentTeam);
+    }
 
-    document.getElementById('product_name').required = isProductOwner;
-    document.getElementById('team_name').required = isProductOwner;
+    const productNameField = document.getElementById('productNameField');
+    const productNameInput = document.getElementById('product_name');
+    const teamNameInput = document.getElementById('team_name');
+    const hodContactInput = document.getElementById('hod_contact');
+
+    if (productNameField) {
+        productNameField.classList.toggle('hidden', !isProductOwner);
+    }
+    if (productNameInput) {
+        productNameInput.required = isProductOwner;
+    }
+    if (teamNameInput) {
+        teamNameInput.required = roleFieldsVisible;
+    }
+    if (hodContactInput) {
+        hodContactInput.required = roleFieldsVisible;
+    }
 }
 
 function updateContainerAccessSummary() {
@@ -264,11 +370,118 @@ function validateContainerAccess() {
 const containerAccessToggle = document.getElementById('containerAccessToggle');
 const containerAccessList = document.getElementById('containerAccessList');
 const containerCheckboxes = document.querySelectorAll('#containerAccessList input[name="container-access"]');
+const reportFilesAddButton = document.getElementById('reportFilesAddButton');
+const reportFilesList = document.getElementById('reportFilesList');
+const reportFilesContainer = document.getElementById('reportFilesInputs');
+const reportSectionPanel = document.getElementById('reportSectionPanel');
+const reportSectionToggle = document.getElementById('reportSectionToggle');
+const reportSectionToggleIcon = document.getElementById('reportSectionToggleIcon');
+
+let reportFilesPicker = null;
+const reportFiles = [];
+
+function createReportFilesPicker() {
+    reportFilesPicker = document.createElement('input');
+    reportFilesPicker.type = 'file';
+    reportFilesPicker.multiple = true;
+    reportFilesPicker.accept = '.png,.jpg,.jpeg,.pdf,.docx,.txt';
+    reportFilesPicker.className = 'hidden';
+    reportFilesPicker.addEventListener('change', () => {
+        const files = Array.from(reportFilesPicker.files || []);
+        if (!files.length) return;
+
+        const groupId = `report-files-${Date.now()}`;
+        reportFilesPicker.dataset.groupId = groupId;
+        reportFilesPicker.name = 'report_files';
+        reportFilesContainer.appendChild(reportFilesPicker);
+        reportFiles.push({ id: groupId, files, input: reportFilesPicker });
+        refreshReportFilesList();
+        createReportFilesPicker();
+    });
+}
+
+function refreshReportFilesList() {
+    if (!reportFilesList) return;
+    reportFilesList.innerHTML = '';
+    reportFiles.forEach(group => {
+        const groupEl = document.createElement('div');
+        groupEl.className = 'flex flex-wrap items-center gap-2 rounded border border-outline-variant bg-surface px-3 py-2';
+        const names = document.createElement('span');
+        names.className = 'text-body-xs text-on-surface';
+        names.textContent = group.files.map(file => file.name).join(', ');
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'text-error-container underline text-body-xs hover:text-error transition-colors';
+        removeButton.textContent = 'Remove';
+        removeButton.addEventListener('click', () => removeReportFilesGroup(group.id));
+        groupEl.appendChild(names);
+        groupEl.appendChild(removeButton);
+        reportFilesList.appendChild(groupEl);
+    });
+}
+
+function removeReportFilesGroup(groupId) {
+    const index = reportFiles.findIndex(group => group.id === groupId);
+    if (index === -1) return;
+    const group = reportFiles[index];
+    if (group.input && group.input.parentNode) {
+        group.input.parentNode.removeChild(group.input);
+    }
+    reportFiles.splice(index, 1);
+    refreshReportFilesList();
+}
+
+createReportFilesPicker();
+
+const reportFilesError = document.getElementById('reportFilesError');
+const reportForm = document.querySelector('form[action="/report-status"]');
+
+if (reportFilesAddButton) {
+    reportFilesAddButton.addEventListener('click', () => {
+        if (reportFilesError) {
+            reportFilesError.classList.add('hidden');
+            reportFilesError.textContent = '';
+        }
+        if (reportSectionPanel && reportSectionPanel.classList.contains('hidden')) {
+            reportSectionPanel.classList.remove('hidden');
+            if (reportSectionToggleIcon) reportSectionToggleIcon.classList.add('rotate-180');
+            if (reportSectionToggle) reportSectionToggle.setAttribute('aria-expanded', 'true');
+        }
+        if (reportFilesPicker) reportFilesPicker.click();
+    });
+}
+
+if (reportForm) {
+    reportForm.addEventListener('submit', (event) => {
+        if (!reportFiles.length) {
+            event.preventDefault();
+            if (reportFilesError) {
+                reportFilesError.textContent = 'Please attach at least one file before submitting the report.';
+                reportFilesError.classList.remove('hidden');
+            } else {
+                alert('Please attach at least one file before submitting the report.');
+            }
+        }
+    });
+}
+
+if (reportSectionToggle) {
+    reportSectionToggle.addEventListener('click', () => {
+        if (!reportSectionPanel || !reportSectionToggleIcon) return;
+        const panelHidden = reportSectionPanel.classList.toggle('hidden');
+        reportSectionToggleIcon.classList.toggle('rotate-180', !panelHidden);
+        reportSectionToggle.setAttribute('aria-expanded', (!panelHidden).toString());
+    });
+}
 
 containerCheckboxes.forEach(cb => cb.addEventListener('change', () => {
     updateContainerAccessSummary();
     validateContainerAccess();
 }));
+
+if (reportFilesContainer) {
+    reportFilesContainer.style.display = 'none';
+}
 
 if (containerAccessToggle) {
     containerAccessToggle.addEventListener('click', () => {

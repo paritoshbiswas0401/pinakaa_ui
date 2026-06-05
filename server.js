@@ -10,6 +10,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const { body, validationResult } = require('express-validator');
+const multer = require('multer');
 const nodemailer = require('nodemailer');
 const svgCaptcha = require('svg-captcha');
 const crypto = require('crypto');
@@ -59,7 +60,14 @@ const transportOptions = process.env.EMAIL_HOST ? {
     } : undefined,
     tls: {
         rejectUnauthorized: false
-    }
+    },
+    connectionTimeout: process.env.EMAIL_CONNECTION_TIMEOUT ? parseInt(process.env.EMAIL_CONNECTION_TIMEOUT, 10) : 10000,
+    greetingTimeout: process.env.EMAIL_GREETING_TIMEOUT ? parseInt(process.env.EMAIL_GREETING_TIMEOUT, 10) : 10000,
+    socketTimeout: process.env.EMAIL_SOCKET_TIMEOUT ? parseInt(process.env.EMAIL_SOCKET_TIMEOUT, 10) : 10000,
+    ...(process.env.EMAIL_DEBUG === 'true' ? {
+        logger: true,
+        debug: true
+    } : {})
 } : process.platform !== 'win32' ? {
     sendmail: true,
     newline: 'unix',
@@ -68,6 +76,33 @@ const transportOptions = process.env.EMAIL_HOST ? {
     jsonTransport: true
 };
 const mailer = nodemailer.createTransport(transportOptions);
+
+mailer.verify((err, success) => {
+    if (err) {
+        console.error('SMTP transport verification failed:', err);
+    } else {
+        console.log('SMTP transport is ready to send messages');
+    }
+});
+
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = [
+            'image/png',
+            'image/jpg',
+            'image/jpeg',
+            'application/pdf',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'text/plain'
+        ];
+        if (allowedTypes.includes(file.mimetype)) {
+            return cb(null, true);
+        }
+        cb(new Error('Only .png, .jpg, .jpeg, .pdf, .docx, and .txt files are allowed.'));
+    }
+});
 
 // Middleware
 // Security: Helmet - sets various HTTP headers for security
@@ -704,7 +739,296 @@ app.get('/logout', (req, res) => {
 
 // 7. Contact Page
 app.get('/contact', (req, res) => {
-    res.render('contact', { error: null, formData: {}, ...baseViewModel(req) });
+    res.render('contact', { error: null, formData: {}, reportError: null, reportSuccess: null, reportForm: {}, ...baseViewModel(req) });
+});
+
+app.post('/contact', (req, res) => {
+    const {
+        name,
+        email,
+        purpose,
+        'target-device': targetDevice,
+        organization,
+        role,
+        'container-access': containerAccess,
+        product_name: productName,
+        team_name: teamName,
+        hod_contact: hodContact
+    } = req.body;
+
+    const containerAccessNormalized = Array.isArray(containerAccess) ? containerAccess.join(',') : containerAccess;
+    const targetDeviceNormalized = Array.isArray(targetDevice) ? targetDevice.join(',') : targetDevice;
+    const formData = { name, email, purpose, targetDevice, organization, role, containerAccess, productName, teamName, hodContact };
+    const hodEmailMatch = hodContact ? hodContact.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/) : null;
+    const hodEmail = hodEmailMatch ? hodEmailMatch[1] : null;
+
+    if (!name || !email || !purpose || !targetDeviceNormalized || !organization || !role) {
+        return res.render('contact', {
+            error: 'Please complete all fields before submitting the request.',
+            formData,
+            reportError: null,
+            reportSuccess: null,
+            reportForm: {},
+            ...baseViewModel(req)
+        });
+    }
+
+    if ((role === 'Product Owner' || role === 'Deployment team') && !teamName) {
+        return res.render('contact', {
+            error: 'Team name is required for Product Owner and Deployment Team roles.',
+            formData,
+            reportError: null,
+            reportSuccess: null,
+            reportForm: {},
+            ...baseViewModel(req)
+        });
+    }
+
+    if ((role === 'Product Owner' || role === 'Deployment team') && !hodContact) {
+        return res.render('contact', {
+            error: 'Name and email of HOD are required for Product Owner and Deployment Team roles.',
+            formData,
+            reportError: null,
+            reportSuccess: null,
+            reportForm: {},
+            ...baseViewModel(req)
+        });
+    }
+
+    if ((role === 'Product Owner' || role === 'Deployment team') && !hodEmail) {
+        return res.render('contact', {
+            error: 'Please include a valid email address in the HOD contact field.',
+            formData,
+            reportError: null,
+            reportSuccess: null,
+            reportForm: {},
+            ...baseViewModel(req)
+        });
+    }
+
+    if (role === 'Product Owner' && !productName) {
+        return res.render('contact', {
+            error: 'Product Owner requests require a Product name.',
+            formData,
+            reportError: null,
+            reportSuccess: null,
+            reportForm: {},
+            ...baseViewModel(req)
+        });
+    }
+
+    if (role === 'Deployment team' && (!containerAccess || (Array.isArray(containerAccess) && containerAccess.length === 0))) {
+        return res.render('contact', {
+            error: 'Deployment team requests require a container access type selection.',
+            formData,
+            reportError: null,
+            reportSuccess: null,
+            reportForm: {},
+            ...baseViewModel(req)
+        });
+    }
+
+    const username = name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    const now = new Date().toISOString();
+
+    db.get('SELECT * FROM users WHERE email = ?', [email], (err, existingUser) => {
+        if (err) {
+            return res.render('contact', {
+                error: 'Unable to submit your request at this time. Please try again later.',
+                formData,
+                reportError: null,
+                reportSuccess: null,
+                reportForm: {},
+                ...baseViewModel(req)
+            });
+        }
+
+        const fileAccessValue = role === 'Deployment team' ? containerAccessNormalized : 'Login Request';
+
+        if (existingUser) {
+            if (existingUser.status === 'active') {
+                return res.render('contact', {
+                    error: 'An account already exists for this email address.',
+                    formData,
+                    reportError: null,
+                    reportSuccess: null,
+                    reportForm: {},
+                    ...baseViewModel(req)
+                });
+            } else if (existingUser.status === 'pending') {
+                return res.render('contact', {
+                    error: 'A login request using this email is already pending review.',
+                    formData,
+                    reportError: null,
+                    reportSuccess: null,
+                    reportForm: {},
+                    ...baseViewModel(req)
+                });
+            } else if (existingUser.status === 'rejected') {
+                const newPassword = DEFAULT_PASSWORD_ENV || generateRandomPassword();
+                db.run(`UPDATE users SET name = ?, password = ?, purpose = ?, target_device = ?, role = ?, organization = ?, container_access = ?, product_name = ?, team_name = ?, hod_name = ?, hod_email = ?, status = 'pending' WHERE id = ?`,
+                    [name, newPassword, purpose, targetDeviceNormalized, role, organization, fileAccessValue, productName || null, teamName || null, hodContact || null, hodEmail || null, existingUser.id], function(updateErr) {
+                        if (updateErr) {
+                            return res.render('contact', {
+                                error: 'Unable to update your request at this time. Please try again later.',
+                                formData,
+                                reportError: null,
+                                reportSuccess: null,
+                                reportForm: {},
+                                ...baseViewModel(req)
+                            });
+                        }
+
+                        const mailOptions = {
+                            from: emailFromAddress,
+                            to: requestRecipient,
+                            subject: `Updated login request from ${name}`,
+                            text: `Updated login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDeviceNormalized}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nHOD Contact: ${hodContact || 'N/A'}\nContainer Access: ${fileAccessValue || 'N/A'}\nSubmitted At: ${now}`,
+                            html: `<p>An updated login request has been submitted with the following details:</p>
+                                   <ul>
+                                     <li><strong>Name:</strong> ${name}</li>
+                                     <li><strong>Email:</strong> ${email}</li>
+                                     <li><strong>Role:</strong> ${role}</li>
+                                     <li><strong>Purpose:</strong> ${purpose}</li>
+                                     <li><strong>Target Device/Architecture:</strong> ${targetDeviceNormalized}</li>
+                                     <li><strong>Organization:</strong> ${organization}</li>
+                                     <li><strong>Product Name:</strong> ${productName || 'N/A'}</li>
+                                     <li><strong>Team Name:</strong> ${teamName || 'N/A'}</li>
+                                     <li><strong>HOD Contact:</strong> ${hodContact || 'N/A'}</li>
+                                     <li><strong>Container Access:</strong> ${fileAccessValue || 'N/A'}</li>
+                                     <li><strong>Submitted At:</strong> ${now}</li>
+                                   </ul>`
+                        };
+
+                        res.redirect('/success');
+                        sendMailInBackground(mailOptions, `updated login request from ${email}`);
+                    });
+                return;
+            }
+        }
+
+        const generatedPassword = DEFAULT_PASSWORD_ENV || generateRandomPassword();
+        db.run(`INSERT INTO users (username, name, email, password, purpose, target_device, container_access, role, organization, product_name, team_name, hod_name, hod_email, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+            [username, name, email, generatedPassword, purpose, targetDeviceNormalized, fileAccessValue, role, organization, productName || null, teamName || null, hodContact || null, hodEmail || null], function(insertErr) {
+                if (insertErr) {
+                    return res.render('contact', {
+                        error: 'Unable to save your request at this time. Please try again later.',
+                        formData,
+                        reportError: null,
+                        reportSuccess: null,
+                        reportForm: {},
+                        ...baseViewModel(req)
+                    });
+                }
+
+                const mailOptions = {
+                    from: emailFromAddress,
+                    to: requestRecipient,
+                    subject: `New login request from ${name}`,
+                    text: `New login request submitted:\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPurpose: ${purpose}\nTarget Device/Architecture: ${targetDeviceNormalized}\nOrganization: ${organization}\nProduct Name: ${productName || 'N/A'}\nTeam Name: ${teamName || 'N/A'}\nHOD Contact: ${hodContact || 'N/A'}\nContainer Access: ${fileAccessValue || 'N/A'}\nSubmitted At: ${now}`,
+                    html: `<p>A new login request has been submitted with the following details:</p>
+                           <ul>
+                             <li><strong>Name:</strong> ${name}</li>
+                             <li><strong>Email:</strong> ${email}</li>
+                             <li><strong>Role:</strong> ${role}</li>
+                             <li><strong>Purpose:</strong> ${purpose}</li>
+                             <li><strong>Target Device/Architecture:</strong> ${targetDeviceNormalized}</li>
+                             <li><strong>Organization:</strong> ${organization}</li>
+                             <li><strong>Product Name:</strong> ${productName || 'N/A'}</li>
+                             <li><strong>Team Name:</strong> ${teamName || 'N/A'}</li>
+                             <li><strong>HOD Contact:</strong> ${hodContact || 'N/A'}</li>
+                             <li><strong>Container Access:</strong> ${fileAccessValue || 'N/A'}</li>
+                             <li><strong>Submitted At:</strong> ${now}</li>
+                           </ul>`
+                };
+
+                res.redirect('/success');
+                sendMailInBackground(mailOptions, `new login request from ${email}`);
+            });
+    });
+});
+
+app.post('/report-status', (req, res) => {
+    upload.array('report_files', 5)(req, res, (uploadErr) => {
+        if (!req.session.userId) {
+            return res.redirect('/login');
+        }
+
+        const reportForm = {
+            reportMessage: req.body.report_message || '',
+            serverArchitecture: req.body.server_architecture || '',
+            runtimeUsed: req.body.runtime_used || '',
+            runtimeVersion: req.body.runtime_version || '',
+            packagesVersions: req.body.packages_versions || ''
+        };
+
+        if (uploadErr) {
+            return res.render('contact', {
+                error: null,
+                formData: {},
+                reportError: uploadErr.message,
+                reportSuccess: null,
+                reportForm,
+                ...baseViewModel(req)
+            });
+        }
+
+        const reportMessage = (req.body.report_message || '').trim();
+        const serverArchitecture = (req.body.server_architecture || '').trim();
+        const runtimeUsed = (req.body.runtime_used || '').trim();
+        const runtimeVersion = (req.body.runtime_version || '').trim();
+        const packagesVersions = (req.body.packages_versions || '').trim();
+        const attachedFiles = (req.files || []).length;
+
+        if (!attachedFiles || !reportMessage || !serverArchitecture || !runtimeUsed || !runtimeVersion || !packagesVersions) {
+            return res.render('contact', {
+                error: null,
+                formData: {},
+                reportError: 'Please attach files and complete all deployment report fields before submitting.',
+                reportSuccess: null,
+                reportForm,
+                ...baseViewModel(req)
+            });
+        }
+
+        const attachments = (req.files || []).map((file) => ({
+            filename: file.originalname,
+            content: file.buffer,
+            contentType: file.mimetype
+        }));
+
+        const mailOptions = {
+            from: emailFromAddress,
+            to: requestRecipient,
+            subject: `Deployment status report from ${req.session.username || req.session.role || 'Logged-in user'}`,
+            text: `Deployment Status Report:\n\nSubmitted by: ${req.session.username || 'Unknown'}\nRole: ${req.session.role || 'Unknown'}\n\nValidation Logs / Env Issues & Fixes / Benchmark Results:\n${reportMessage}\n\nServer Name & Architecture: ${serverArchitecture}\nRuntime Used: ${runtimeUsed}\nRuntime Version: ${runtimeVersion || 'N/A'}\nPackages Deployed & Versions: ${packagesVersions || 'N/A'}\n\nSubmitted At: ${new Date().toISOString()}`,
+            html: `<p><strong>Deployment Status Report</strong></p>
+                   <ul>
+                     <li><strong>Submitted by:</strong> ${req.session.username || 'Unknown'}</li>
+                     <li><strong>Role:</strong> ${req.session.role || 'Unknown'}</li>
+                     <li><strong>Server Name & Architecture:</strong> ${serverArchitecture}</li>
+                     <li><strong>Runtime Used:</strong> ${runtimeUsed}</li>
+                     <li><strong>Runtime Version:</strong> ${runtimeVersion || 'N/A'}</li>
+                     <li><strong>Packages Deployed & Versions:</strong> ${packagesVersions || 'N/A'}</li>
+                     <li><strong>Submitted At:</strong> ${new Date().toISOString()}</li>
+                   </ul>
+                   <p><strong>Validation Logs / Env Issues & Fixes / Benchmark Results:</strong></p>
+                   <p style="white-space: pre-wrap;">${reportMessage}</p>`,
+            attachments
+        };
+
+        sendMailInBackground(mailOptions, `deployment status report from ${req.session.username || 'unknown'}`);
+
+        res.render('contact', {
+            error: null,
+            formData: {},
+            reportError: null,
+            reportSuccess: 'Deployment status report sent successfully.',
+            reportForm: {},
+            ...baseViewModel(req)
+        });
+    });
 });
 
 app.get('/documentation', (req, res) => {
