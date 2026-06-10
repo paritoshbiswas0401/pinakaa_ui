@@ -617,7 +617,7 @@ app.get('/download/file/:filename', (req, res) => {
                     
                     // Track the download after successful stream completion
                     const userId = req.session.userId;
-                    const now = new Date().toISOString();
+                    const now = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
                     const baseName = filename.replace(/\.sif$/i, '');
 
                     // Increment total downloads
@@ -829,7 +829,7 @@ app.post('/contact', (req, res) => {
     }
 
     const username = name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-    const now = new Date().toISOString();
+    const now = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
 
     db.get('SELECT * FROM users WHERE email = ?', [email], (err, existingUser) => {
         if (err) {
@@ -1002,7 +1002,7 @@ app.post('/report-status', (req, res) => {
             from: emailFromAddress,
             to: requestRecipient,
             subject: `Deployment status report from ${req.session.username || req.session.role || 'Logged-in user'}`,
-            text: `Deployment Status Report:\n\nSubmitted by: ${req.session.username || 'Unknown'}\nRole: ${req.session.role || 'Unknown'}\n\nValidation Logs / Env Issues & Fixes / Benchmark Results:\n${reportMessage}\n\nServer Name & Architecture: ${serverArchitecture}\nRuntime Used: ${runtimeUsed}\nRuntime Version: ${runtimeVersion || 'N/A'}\nPackages Deployed & Versions: ${packagesVersions || 'N/A'}\n\nSubmitted At: ${new Date().toISOString()}`,
+            text: `Deployment Status Report:\n\nSubmitted by: ${req.session.username || 'Unknown'}\nRole: ${req.session.role || 'Unknown'}\n\nValidation Logs / Env Issues & Fixes / Benchmark Results:\n${reportMessage}\n\nServer Name & Architecture: ${serverArchitecture}\nRuntime Used: ${runtimeUsed}\nRuntime Version: ${runtimeVersion || 'N/A'}\nPackages Deployed & Versions: ${packagesVersions || 'N/A'}\n\nSubmitted At: ${new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })}`,
             html: `<p><strong>Deployment Status Report</strong></p>
                    <ul>
                      <li><strong>Submitted by:</strong> ${req.session.username || 'Unknown'}</li>
@@ -1011,7 +1011,7 @@ app.post('/report-status', (req, res) => {
                      <li><strong>Runtime Used:</strong> ${runtimeUsed}</li>
                      <li><strong>Runtime Version:</strong> ${runtimeVersion || 'N/A'}</li>
                      <li><strong>Packages Deployed & Versions:</strong> ${packagesVersions || 'N/A'}</li>
-                     <li><strong>Submitted At:</strong> ${new Date().toISOString()}</li>
+                     <li><strong>Submitted At:</strong> ${new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })}</li>
                    </ul>
                    <p><strong>Validation Logs / Env Issues & Fixes / Benchmark Results:</strong></p>
                    <p style="white-space: pre-wrap;">${reportMessage}</p>`,
@@ -1103,7 +1103,7 @@ app.post('/contact', (req, res) => {
 
     const username = name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
 
-    const now = new Date().toISOString();
+    const now = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
 
     db.get("SELECT * FROM users WHERE email = ?", [email], (err, existingUser) => {
         if (err) {

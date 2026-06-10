@@ -125,14 +125,17 @@
                 <div class="flex items-start gap-4">
                     <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">report_problem</span>
                     <div class="flex-1">
-                        <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Report Deployment Status</h2>
-                        <p class="font-body-md text-body-md text-on-surface-variant">Upload validation logs or results and share deployment details with the PINAKAA team.</p>
+                        <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Report Deployment Issues</h2>
+                        <p class="font-body-md text-body-md text-on-surface-variant">Upload validation logs and share deployment issues with the PINAKAA team.</p>
                     </div>
                 </div>
                 <button type="button" id="reportSectionToggle" class="inline-flex items-center justify-center h-10 w-10 rounded border border-primary text-primary hover:bg-primary-container/10 transition-colors" title="Toggle report details" aria-expanded="<%= reportError || reportSuccess ? 'true' : 'false' %>">
                     <span id="reportSectionToggleIcon" class="material-symbols-outlined transition-transform duration-200 <%= reportError || reportSuccess ? 'rotate-180' : '' %>">expand_more</span>
                 </button>
             </div>
+            <% if (!username) { %>
+                        <p class="text-body-sm text-on-surface-variant">You need to be logged in to submit a deployment issue report. <a href="/login" class="text-primary underline">Login</a></p>
+            <% } %>
             <div id="reportSectionPanel" class="<%= reportError || reportSuccess ? '' : 'hidden' %> space-y-4">
                 <% if (reportError) { %>
                     <div class="rounded-lg border border-error-container bg-error-container px-4 py-3 mb-4 text-on-error-container">
@@ -158,8 +161,8 @@
                         <p class="text-body-xs text-on-surface-variant mt-2">Allowed formats: .png, .jpg, .jpeg, .pdf, .docx, .txt</p>
                     </div>
                     <div>
-                        <label class="block text-body-sm text-on-surface mb-1" for="report_message">Validation Logs / Env Issues & Fixes / Benchmark Results</label>
-                        <textarea id="report_message" name="report_message" rows="4" required class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="Describe validation logs, environment issues or benchmark results"><%= (reportForm && reportForm.reportMessage) || '' %></textarea>
+                        <label class="block text-body-sm text-on-surface mb-1" for="report_message">Validation Logs / Env Issues</label>
+                        <textarea id="report_message" name="report_message" rows="4" required class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="Describe validation logs or environment issues"><%= (reportForm && reportForm.reportMessage) || '' %></textarea>
                     </div>
                     <div>
                         <label class="block text-body-sm text-on-surface mb-1" for="server_architecture">Server name & architecture</label>
@@ -183,9 +186,6 @@
                         <label class="block text-body-sm text-on-surface mb-1" for="packages_versions">Packages deployed & versions</label>
                         <textarea id="packages_versions" name="packages_versions" rows="3" required class="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:border-primary focus:outline-none" placeholder="List packages and versions"><%= (reportForm && reportForm.packagesVersions) || '' %></textarea>
                     </div>
-                    <% if (!username) { %>
-                        <p class="text-body-sm text-on-surface-variant">You need to be logged in to submit a deployment status report. <a href="/login" class="text-primary underline">Login</a></p>
-                    <% } %>
                     <button type="submit" class="inline-flex items-center justify-center rounded bg-primary px-6 py-3 text-on-primary font-semibold hover:bg-primary-container transition-colors"><%= username ? 'Submit Deployment Report' : 'Login to Submit Report' %></button>
                 </form>
             </div>
